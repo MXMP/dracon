@@ -1,6 +1,6 @@
 :::*header*:::
 #-------------------------------------------------------------------
-#                       DES-3200-28 Configuration
+#                       DES-3200-18 Configuration
 #
 #                       Firmware: Build 1.85.B008
 #        Copyright(C) 2010 D-Link Corporation. All rights reserved.
@@ -100,16 +100,6 @@ config access_profile profile_id 6 add access_id auto_assign packet_content offs
 config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0x80 port [ss#16] permit
 config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0x88 port [ss#17] permit
 config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0x90 port [ss#18] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0x98 port [ss#19] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xa0 port [ss#20] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xa8 port [ss#21] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xb0 port [ss#22] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xb8 port [ss#23] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xc0 port [ss#24] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xc8 port [ss#25] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xd0 port [ss#26] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xd8 port [ss#27] permit
-config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0xe0 port [ss#28] permit
 config flow_meter profile_id 6 access_id 1 rate 64 rate_exceed drop_packet
 
 #allow individual source network for a specific subscriber
@@ -132,16 +122,6 @@ config access_profile profile_id 7 add access_id auto_assign packet_content offs
 config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}80  port [ss#16] permit
 config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}88  port [ss#17] permit
 config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}90  port [ss#18] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}98  port [ss#19] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}a0  port [ss#20] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}a8  port [ss#21] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}b0  port [ss#22] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}b8  port [ss#23] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}c0  port [ss#24] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}c8  port [ss#25] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}d0  port [ss#26] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}d8  port [ss#27] permit
-config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{fn_2oct#custom} offset3 0x{fn_3oct#custom}e0  port [ss#28] permit
 config access_profile profile_id 7 add access_id 254 packet_content offset1 0x0806 port [ss] deny
 config access_profile profile_id 7 add access_id 255 packet_content offset1 0x0800 port [ss] deny
 
@@ -200,10 +180,9 @@ create snmp community readonly view CommunityView read_only
 create snmp community write4power view CommunityView read_write
 delete snmp community public
 delete snmp community private
-config snmp system_name {$target} : {fn_split_before#custom}. ({$datetime})
+config snmp system_name {$target} : {fn_tr_cst1#custom}. ({$datetime})
 config snmp system_contact 8-800-5500-800 (PowerNet)
 config snmp system_location {fn_tr_cst2#custom}
-enable snmp
 
 
 :::*sntp*:::
@@ -441,5 +420,5 @@ config ports 28 description "{fn_tr#{comment#28}}"
 
 :::*bottom*:::
 #-------------------------------------------------------------------
-#             End of configuration file for DES-3200-28
+#             End of configuration file for DES-3200-18
 #-------------------------------------------------------------------

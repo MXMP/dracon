@@ -7,6 +7,414 @@
 #-------------------------------------------------------------------
 
 
+:::*acl*:::
+# ACL
+
+#delete access_profile profile_id 1
+delete access_profile profile_id 2
+delete access_profile profile_id 3
+delete access_profile profile_id 4
+delete access_profile profile_id 5
+delete access_profile profile_id 6
+delete access_profile profile_id 7
+delete access_profile profile_id 8
+delete access_profile profile_id 9
+delete access_profile profile_id 10
+delete access_profile profile_id 11
+delete access_profile profile_id 12
+
+#allow traffic for specified ports
+create access_profile ethernet source_mac 00-00-00-00-00-00 profile_id 1
+#to manually allow any traffic for port X add following rule:
+#config access_profile profile_id 1 add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit
+
+#allow tagged frames
+create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 profile_id 2
+config access_profile profile_id 2 add access_id auto_assign packet_content offset 12 0x81000000 port all permit
+
+#deny networks 172.17.0.0/16 and 10.99.0.0/16 for subscribers
+create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0xffff profile_id 3
+config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0xac11 port [ss] deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0x0a63 port [ss] deny
+#QoS mapping for subnets 172.17.0.0/16 and 10.99.0.0/16
+config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0xac11 port [mags] permit priority 7
+config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0x0a63 port [mags] permit priority 7
+
+#allow individual source network for a specific subscriber. (!) this rule applies only to untagged traffic
+create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0xffff 0xfef80000 profile_id 5
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}080000 port   [ss#1] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}100000 port   [ss#2] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}180000 port   [ss#3] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}200000 port   [ss#4] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}280000 port   [ss#5] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}300000 port   [ss#6] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}380000 port   [ss#7] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}400000 port   [ss#8] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}480000 port   [ss#9] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}500000 port  [ss#10] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}580000 port  [ss#11] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}600000 port  [ss#12] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}680000 port  [ss#13] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}700000 port  [ss#14] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}780000 port  [ss#15] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}800000 port  [ss#16] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}880000 port  [ss#17] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}900000 port  [ss#18] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}980000 port  [ss#19] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}a00000 port  [ss#20] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}a80000 port  [ss#21] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}b00000 port  [ss#22] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}b80000 port  [ss#23] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}c00000 port  [ss#24] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}c80000 port  [ss#25] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}d00000 port  [ss#26] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}d80000 port  [ss#27] permit
+config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{fn_2oct#custom} offset 28 0x{fn_3oct#custom}e00000 port  [ss#28] permit
+
+#permit ARP with correct 4th octet (between port*8 and port*8+7). (!) these rules applies only to untagged traffic
+create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0xf8 profile_id 6
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x08 port  [ss#1] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x10 port  [ss#2] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x18 port  [ss#3] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x20 port  [ss#4] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x28 port  [ss#5] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x30 port  [ss#6] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x38 port  [ss#7] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x40 port  [ss#8] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x48 port  [ss#9] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x50 port [ss#10] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x58 port [ss#11] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x60 port [ss#12] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x68 port [ss#13] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x70 port [ss#14] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x78 port [ss#15] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x80 port [ss#16] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x88 port [ss#17] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x90 port [ss#18] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x98 port [ss#19] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xa0 port [ss#20] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xa8 port [ss#21] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xb0 port [ss#22] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xb8 port [ss#23] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xc0 port [ss#24] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xc8 port [ss#25] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xd0 port [ss#26] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xd8 port [ss#27] permit
+config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0xe0 port [ss#28] permit
+
+#DSCP mapping on valid multicast groups
+create access_profile ip dscp profile_id 7
+config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port [up] permit priority 6
+config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port [pu] permit priority 6
+
+#deny multicast from subscribers. (!) this rule applies only to untagged traffic
+create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0x0000f000 profile_id 8
+config access_profile profile_id 8 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0x0000e000 port [ss] deny
+
+#deny ARP (optional), IP (optional) and broadcast. permit IPv6. deny unknown ethernet. (for subscribers)
+create access_profile ethernet source_mac 00-00-00-00-00-00 destination_mac FF-FF-FF-FF-FF-FF ethernet_type profile_id 9
+config access_profile profile_id 9 add access_id auto_assign ethernet ethernet_type 0x0806 port [ss] deny
+config access_profile profile_id 9 add access_id auto_assign ethernet ethernet_type 0x0800 port [ss] deny
+
+config access_profile profile_id 9 add access_id auto_assign ethernet destination_mac FF-FF-FF-FF-FF-FF port [ss] deny
+config access_profile profile_id 9 add access_id auto_assign ethernet ethernet_type 0x86dd port [ss] permit
+config access_profile profile_id 9 add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port [ss] deny
+
+
+:::*cpu_acl*:::
+# CPU ACL
+
+delete cpu access_profile profile_id 1
+delete cpu access_profile profile_id 2
+delete cpu access_profile profile_id 3
+
+enable cpu_interface_filtering
+
+create cpu access_profile profile_id 1 ip destination_ip_mask 255.255.255.255
+config cpu access_profile profile_id 1 add access_id 1 ip destination_ip 224.0.0.2 port all permit
+
+create cpu access_profile profile_id 2 ip destination_ip_mask 255.255.248.0
+config cpu access_profile profile_id 2 add access_id 1 ip destination_ip 239.1.8.0 port all permit
+
+#deny multicast-query for subscribers
+create cpu access_profile profile_id 3 ip destination_ip_mask 240.0.0.0
+config cpu access_profile profile_id 3 add access_id 1 ip destination_ip 224.0.0.0 port [ss] deny
+
+
+:::*accounts*:::
+# ACCOUNT LIST
+
+enable password encryption
+create account admin admin
+*@&JwxHFtYqqKr1J0WJP6Ee2mYVUKSYFKTH
+*@&JwxHFtYqqKr1J0WJP6Ee2mYVUKSYFKTH
+
+
+:::*stp_lbd*:::
+# LOOP DETECT & STP
+
+disable stp
+config stp version rstp
+config stp ports [mags] state disable restricted_tcn true fbpdu enable
+config stp ports   [ss] state disable restricted_tcn true restricted_role true edge true
+config stp ports   [vp] state disable restricted_tcn true restricted_role true edge true
+config stp ports   [eq] state disable restricted_tcn true restricted_role true edge true
+config loopdetect ports [mags] state disabled
+config loopdetect ports   [ss] state  enabled
+config loopdetect ports   [vp] state  enabled
+config loopdetect ports   [eq] state  enabled
+config loopdetect recover_timer 300
+enable loopdetect
+
+
+:::*snmp*:::
+# SNMPv3
+
+create snmp community readonly view CommunityView read_only
+create snmp community write4power view CommunityView read_write
+delete snmp community public
+delete snmp community private
+config snmp system_name {$target} : {fn_split_before#custom}. ({$datetime})
+config snmp system_contact 8-800-5500-800 (PowerNet)
+config snmp system_location {fn_tr_cst2#custom}
+
+
+:::*sntp*:::
+# SNTP
+
+config time_zone operator + hour 3 min 0
+config dst disable
+config sntp primary 10.200.201.34
+enable sntp
+
+
+:::*lldp*:::
+# LLDP
+
+config lldp forward_message enable
+config lldp ports  [all] notification   disable
+config lldp ports  [all] basic_tlvs all disable
+config lldp ports  [all] dot1_tlv_pvid  disable
+config lldp ports  [all] dot1_tlv_vlan_name vlan all disable
+config lldp ports [mags] notification   enable
+config lldp ports [mags] basic_tlvs all enable
+config lldp ports [mags] dot1_tlv_pvid  enable
+config lldp ports [mags] dot1_tlv_vlan_name vlan all enable
+enable lldp
+
+
+:::*filtering*:::
+# MISC FILTERS
+
+config traffic_segmentation [mags] forward_list [all]
+config traffic_segmentation   [ss] forward_list [mags]
+config traffic_segmentation   [vp] forward_list [mags]
+config traffic_segmentation   [eq] forward_list [mags]
+
+config traffic control [mags] broadcast disable multicast disable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control   [ss] broadcast  enable multicast  enable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control   [vp] broadcast disable multicast disable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control   [eq] broadcast  enable multicast  enable threshold 64 countdown 5 time_interval 30 action drop
+
+config dos_prevention dos_type all state disable
+
+config filter dhcp_server ports [mags] state disable
+config filter dhcp_server ports   [ss] state  enable
+config filter dhcp_server ports   [vp] state disable
+config filter dhcp_server ports   [eq] state  enable
+config filter dhcp_server trap_log enable
+
+config cpu_filter l3_control_pkt [all] all state disable
+config cpu_filter l3_control_pkt  [ss] all state  enable
+
+
+:::*trusted_hosts*:::
+# TRUSTED HOSTS
+
+delete trusted_host all
+create trusted_host network 10.0.0.0/8
+create trusted_host network 10.90.90.0/24
+create trusted_host network 10.99.0.0/16
+create trusted_host network 172.17.0.0/16
+create trusted_host network 10.137.128.0/21
+create trusted_host network 10.200.200.0/23
+delete trusted_host network 10.0.0.0/8
+
+
+:::*ipm*:::
+# IPM
+
+disable address_binding dhcp_snoop
+disable address_binding trap_log
+
+
+:::*dhcp_relay*:::
+# DHCP_RELAY
+
+config dhcp_relay hops 4 time 0
+config dhcp_relay option_82 state enable
+config dhcp_relay option_82 check disable
+config dhcp_relay option_82 policy keep
+config dhcp_relay add ipif System 10.200.201.34
+config dhcp_relay add ipif System 10.200.201.134
+config dhcp_relay option_82 remote_id user_define {$target}
+config dhcp_relay ports [mags] state disable
+config dhcp_relay ports   [ss] state  enable
+config dhcp_relay ports   [vp] state disable
+config dhcp_relay ports   [eq] state enable
+enable dhcp_relay
+
+
+:::*igmp_snooping*:::
+# IGMP
+
+enable igmp_snooping
+enable igmp_snooping multicast_vlan
+delete igmp_snooping multicast_vlan multicast-vlan
+delete igmp_snooping multicast_vlan mvr
+config igmp_snooping all state disable
+config igmp_snooping all fast_leave disable
+create igmp_snooping multicast_vlan mvr 50
+config igmp_snooping multicast_vlan mvr state enable 
+config igmp_snooping multicast_vlan mvr replace_source_ip 10.11.0.2
+config igmp_snooping vlan_name mvr fast_leave disable
+config igmp_snooping querier vlan_name mvr robustness_variable 7
+config igmp_snooping data_driven_learning max_learned_entry 1
+config igmp_snooping data_driven_learning vlan_name mvr aged_out enable 
+config igmp_snooping multicast_vlan mvr add member_port [ss]
+config igmp_snooping multicast_vlan mvr add member_port [ns]
+config igmp_snooping multicast_vlan mvr add tag_member_port [mags]
+config igmp_snooping multicast_vlan mvr delete tag_member_port [up]
+config igmp_snooping multicast_vlan mvr add source_port [up]
+config igmp_snooping multicast_vlan mvr delete tag_member_port [pu]
+config igmp_snooping multicast_vlan mvr add source_port [pu]
+config multicast port_filtering_mode all filter_unregistered_groups
+
+
+:::*igmp_auth*:::
+# IGMP Authentication
+
+config radius delete 1
+config radius delete 2
+config radius add 1 10.200.201.234 key rad0iptv default
+config radius add 2 10.200.201.134 key rad0iptv default
+config igmp access_authentication ports [all] state disable
+config igmp access_authentication ports  [ss] state disable
+config radius parameter timeout 1 retransmit 1
+
+
+:::*aaa*:::
+# AAA
+
+create authen server_host 10.200.201.34 protocol radius port 1812 key "rad0iptv" timeout 5 retransmit 2
+create authen server_host 10.200.201.134 protocol radius port 1812 key "rad0iptv" timeout 5 retransmit 2
+
+create authen_login method_list_name RadiusLogin
+config authen_login method_list_name RadiusLogin method radius local
+
+create authen_enable method_list_name RadiusEnable
+config authen_enable method_list_name RadiusEnable method radius local_enable
+
+config authen application telnet login method_list_name RadiusLogin
+config authen application telnet enable method_list_name RadiusEnable
+
+config authen application http login method_list_name RadiusLogin
+config authen application http enable method_list_name RadiusEnable
+
+enable authen_policy
+
+
+:::*multi_filter*:::
+# MULTI FILTER
+
+config limited_multicast_addr ports [all] delete profile_id 1
+delete mcast_filter_profile profile_id 1
+
+create mcast_filter_profile profile_id 1 profile_name iptv
+config mcast_filter_profile profile_id 1 add 239.1.8.1-239.1.15.254
+config limited_multicast_addr ports [all] add profile_id 1
+
+
+:::*cos*:::
+# COS
+
+config scheduling_mechanism strict
+
+config cos tos value 6 class 3
+config cos tos value 7 class 3
+
+config dscp_mapping dscp_value 48 class 3
+config dscp_mapping dscp_value 56 class 3
+config cos mapping port  [all] none
+config cos mapping port [mags] ip dscp
+
+
+:::*mon_log*:::
+# MONITOR
+
+enable syslog
+delete syslog host all
+create syslog host 1 ipaddress 10.200.201.180 udp_port 7514 state enable
+create syslog host 2 ipaddress 10.200.201.137 state enable
+
+enable mac_notification
+config mac_notification ports [all] disable
+config mac_notification ports  [ss]  enable
+config mac_notification ports  [vp]  enable
+delete snmp host 10.200.200.9
+create snmp host 10.200.201.180 v2c readonly
+
+config gvrp [mags] pvid 50
+config gvrp [all] ingress_checking enable
+
+disable flood_fdb
+config flood_fdb log enable trap disable
+
+enable rmon
+
+config safeguard_engine utilization rising 90 falling 30 trap_log enable state enable
+
+config log_save_timing time_interval 240
+enable command logging
+
+config ethernet_oam ports [all] state disable
+config ethernet_oam ports [mags] state enable
+config ethernet_oam ports [all] critical_link_event critical_event notify_state disable
+
+
+:::*p_desc*:::
+# PORTS DESCRIPTION
+
+config ports  1 description "{fn_tr#{comment#1}}"
+config ports  2 description "{fn_tr#{comment#2}}"
+config ports  3 description "{fn_tr#{comment#3}}"
+config ports  4 description "{fn_tr#{comment#4}}"
+config ports  5 description "{fn_tr#{comment#5}}"
+config ports  6 description "{fn_tr#{comment#6}}"
+config ports  7 description "{fn_tr#{comment#7}}"
+config ports  8 description "{fn_tr#{comment#8}}"
+config ports  9 description "{fn_tr#{comment#9}}"
+config ports 10 description "{fn_tr#{comment#10}}"
+config ports 11 description "{fn_tr#{comment#11}}"
+config ports 12 description "{fn_tr#{comment#12}}"
+config ports 13 description "{fn_tr#{comment#13}}"
+config ports 14 description "{fn_tr#{comment#14}}"
+config ports 15 description "{fn_tr#{comment#15}}"
+config ports 16 description "{fn_tr#{comment#16}}"
+config ports 17 description "{fn_tr#{comment#17}}"
+config ports 18 description "{fn_tr#{comment#18}}"
+config ports 19 description "{fn_tr#{comment#19}}"
+config ports 20 description "{fn_tr#{comment#20}}"
+config ports 21 description "{fn_tr#{comment#21}}"
+config ports 22 description "{fn_tr#{comment#22}}"
+config ports 23 description "{fn_tr#{comment#23}}"
+config ports 24 description "{fn_tr#{comment#24}}"
+config ports 25 description "{fn_tr#{comment#25}}"
+config ports 26 description "{fn_tr#{comment#26}}"
+config ports 27 description "{fn_tr#{comment#27}}"
+config ports 28 description "{fn_tr#{comment#28}}"
+
+
 :::*bottom*:::
 #-------------------------------------------------------------------
 #             End of configuration file for DES-3028

@@ -1,10 +1,10 @@
 :::*header*:::
 #-------------------------------------------------------------------------------
-#                    DGS-3000-26TC Gigabit Ethernet Switch
+#                     DGS-3000-28L Gigabit Ethernet Switch
 #                                Configuration
 #
-#                          Firmware: Build 1.14.B008
-#           Copyright(C) 2014 D-Link Corporation. All rights reserved.
+#                          Firmware: Build 4.01.B010
+#           Copyright(C) 2018 D-Link Corporation. All rights reserved.
 #-------------------------------------------------------------------------------
 
 
@@ -83,6 +83,8 @@ config access_profile profile_name pcf add access_id  92 packet_content offset_c
 config access_profile profile_name pcf add access_id  96 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}C0 port [ss#24] permit
 config access_profile profile_name pcf add access_id 100 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}C8 port [ss#25] permit
 config access_profile profile_name pcf add access_id 104 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}D0 port [ss#26] permit
+config access_profile profile_name pcf add access_id 108 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}D8 port [ss#27] permit
+config access_profile profile_name pcf add access_id 112 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}E8 port [ss#28] permit
 #permit ARP with correct 4th octet (between port_N*8 and port_N*8+7) and even 3rd octet
 config access_profile profile_name pcf add access_id   5 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}080000 port  [ss#1] permit
 config access_profile profile_name pcf add access_id   9 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}100000 port  [ss#2] permit
@@ -110,6 +112,8 @@ config access_profile profile_name pcf add access_id  93 packet_content offset_c
 config access_profile profile_name pcf add access_id  97 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}C00000 port [ss#24] permit
 config access_profile profile_name pcf add access_id 101 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}C80000 port [ss#25] permit
 config access_profile profile_name pcf add access_id 105 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}D00000 port [ss#26] permit
+config access_profile profile_name pcf add access_id 109 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}D80000 port [ss#27] permit
+config access_profile profile_name pcf add access_id 113 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}E80000 port [ss#28] permit
 #permit ARP with correct 4th octet (between port_N*8 and port_N*8+7) and odd 3rd octet
 config access_profile profile_name pcf add access_id   6 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}080000 port  [ss#1] permit
 config access_profile profile_name pcf add access_id  10 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}100000 port  [ss#2] permit
@@ -137,11 +141,14 @@ config access_profile profile_name pcf add access_id  94 packet_content offset_c
 config access_profile profile_name pcf add access_id  98 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}C00000 port [ss#24] permit
 config access_profile profile_name pcf add access_id 102 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}C80000 port [ss#25] permit
 config access_profile profile_name pcf add access_id 106 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}D00000 port [ss#26] permit
+config access_profile profile_name pcf add access_id 110 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}D80000 port [ss#27] permit
+config access_profile profile_name pcf add access_id 114 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}E80000 port [ss#28] permit
 #deny IP
 config access_profile profile_name pcf add access_id 254 packet_content offset_chunk_1 0x0800 port [ss] deny
 #deny ARP
 config access_profile profile_name pcf add access_id 255 packet_content offset_chunk_1 0x0806 port [ss] deny
 
+config cpu_filter l3_control_pkt  [vp] all state disable
 
 :::*cpu_acl*:::
 # CPU ACL
@@ -195,7 +202,7 @@ create snmp community readonly view CommunityView read_only
 create snmp community write4power view CommunityView read_write
 delete snmp community public
 delete snmp community private
-config snmp system_name {$target} : {fn_tr_cst1#custom}. ({$datetime})
+config snmp system_name {$target} : {fn_split_before#custom}. ({$datetime})
 config snmp system_contact 8-800-5500-800 (PowerNet)
 config snmp system_location {fn_tr_cst2#custom}
 enable snmp
@@ -392,6 +399,19 @@ config safeguard_engine utilization rising 90 falling 30 trap_log enable state e
 config log_save_timing time_interval 240
 enable command logging
 
+config ethernet_oam ports [all] state disable
+config ethernet_oam ports [mags] state enable
+config ethernet_oam ports [all] critical_link_event critical_event notify_state disable
+
+# AutoBackup
+
+enable autobackup
+disable autobackup_encryption
+config autobackup mode both
+config autobackup log state enable
+config autobackup path tftp 10.200.201.180 dest_file backup
+config autobackup time_schedule interval 60
+config autobackup file_template none
 
 :::*p_desc*:::
 # PORTS DESCRIPTION
@@ -422,9 +442,11 @@ config ports 23 description "{fn_tr#{comment#23}}"
 config ports 24 description "{fn_tr#{comment#24}}"
 config ports 25 description "{fn_tr#{comment#25}}"
 config ports 26 description "{fn_tr#{comment#26}}"
+config ports 27 description "{fn_tr#{comment#27}}"
+config ports 28 description "{fn_tr#{comment#28}}"
 
 
 :::*bottom*:::
 #-------------------------------------------------------------------
-#             End of configuration file for DGS-3000-26TC
+#             End of configuration file for DGS-3000-28L
 #-------------------------------------------------------------------
