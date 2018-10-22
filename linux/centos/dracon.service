@@ -9,9 +9,9 @@ After=network.target
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/python2  /usr/local/etc/dracon/dracon.py start
-ExecStop=/usr/bin/python2   /usr/local/etc/dracon/dracon.py stop
-ExecReload=/usr/bin/python2 /usr/local/etc/dracon/dracon.py restart
+ExecStart=/usr/bin/python3  /usr/local/etc/dracon/dracon.py start
+ExecStop=/usr/bin/python3   /usr/local/etc/dracon/dracon.py stop
+ExecReload=/usr/bin/python3 /usr/local/etc/dracon/dracon.py restart
 PIDFile=/var/run/dracon.pid
 
 [Install]

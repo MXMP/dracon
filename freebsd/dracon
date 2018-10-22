@@ -23,7 +23,7 @@ load_rc_config $name
 
 : ${dracon_enable="NO"}
 
-command_interpreter="/usr/local/bin/python2"
+command_interpreter="/usr/local/bin/python3"
 command="/usr/local/etc/dracon/dracon.py"
 command_args="$1"
 start_precmd="dracon_prestart"

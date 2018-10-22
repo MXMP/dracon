@@ -12,7 +12,7 @@
 PATH="/sbin:/usr/sbin:/bin:/usr/bin"
 DESC="dracon"
 NAME="dracon"
-DAEMON="/usr/bin/python2"
+DAEMON="/usr/bin/python3"
 DAEMON_ARGS="/usr/local/etc/dracon/dracon.py"
 PIDFILE="/var/run/dracon.pid"
 SCRIPTNAME="/etc/init.d/dracon"
