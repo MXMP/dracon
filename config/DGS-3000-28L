@@ -144,9 +144,9 @@ config access_profile profile_name pcf add access_id 106 packet_content offset_c
 config access_profile profile_name pcf add access_id 110 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}D80000 port [ss#27] permit
 config access_profile profile_name pcf add access_id 114 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}E80000 port [ss#28] permit
 #deny IP
-config access_profile profile_name pcf add access_id 254 packet_content offset_chunk_1 0x0800 port [ss] deny
+config access_profile profile_name pcf add access_id 127 packet_content offset_chunk_1 0x0800 port [ss] deny
 #deny ARP
-config access_profile profile_name pcf add access_id 255 packet_content offset_chunk_1 0x0806 port [ss] deny
+config access_profile profile_name pcf add access_id 128 packet_content offset_chunk_1 0x0806 port [ss] deny
 
 config cpu_filter l3_control_pkt  [vp] all state disable
 
@@ -197,7 +197,6 @@ enable loopdetect
 :::*snmp*:::
 # SNMPv3
 
-enable community_encryption
 create snmp community readonly view CommunityView read_only
 create snmp community write4power view CommunityView read_write
 delete snmp community public
@@ -251,7 +250,8 @@ config filter dhcp_server ports [mags] state disable
 config filter dhcp_server ports   [ss] state  enable
 config filter dhcp_server ports   [vp] state disable
 config filter dhcp_server ports   [eq] state  enable
-config filter dhcp_server trap_log enable
+config filter dhcp_server trap enable
+config filter dhcp_server log enable
 
 config cpu_filter l3_control_pkt [all] all state disable
 config cpu_filter l3_control_pkt  [ss] all state  enable
@@ -287,10 +287,6 @@ config dhcp_relay option_82 policy keep
 config dhcp_relay add ipif System 10.200.201.34
 config dhcp_relay add ipif System 10.200.201.134
 config dhcp_relay option_82 remote_id user_define {$target}
-config dhcp_relay ports [mags] state disable
-config dhcp_relay ports   [ss] state  enable
-config dhcp_relay ports   [vp] state disable
-config dhcp_relay ports   [eq] state enable
 enable dhcp_relay
 
 
@@ -407,7 +403,7 @@ config ethernet_oam ports [all] critical_link_event critical_event notify_state 
 
 enable autobackup
 disable autobackup_encryption
-config autobackup mode both
+config autobackup mode all
 config autobackup log state enable
 config autobackup path tftp 10.200.201.180 dest_file backup
 config autobackup time_schedule interval 60
