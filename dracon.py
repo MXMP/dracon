@@ -52,7 +52,7 @@ def md5size(src):
     """
 
     # Сортируем и склеиваем блоки данных
-    data = ''.join([src[i] for i in sorted(src.keys())])
+    data = ''.join([str(src[i]) for i in sorted(src.keys())])
     # Возвращаем длину и значение MD5 блока данных
     return md5(data), len(data)
 
@@ -208,7 +208,7 @@ def put_config_to_my_sql(direction, cfg, target, name, switch, ip, m5d, cfg_type
     """
 
     # Сортируем и склеиваем блоки данных
-    cfg = ''.join([cfg[i] for i in sorted(cfg.keys())])
+    cfg = ''.join([str(cfg[i]) for i in sorted(cfg.keys())])
     # Формируем данные для размещения их в базе
     mysql_query = "INSERT INTO {0}.{1} ({1}.timestamp, {1}.ip, {1}.target, {1}.direction," \
                   " {1}.switch, {1}.name, {1}.hash) VALUES ".format(mysql_base_w, mysql_ttbl_w)
@@ -255,7 +255,7 @@ def put_config_to_my_sql(direction, cfg, target, name, switch, ip, m5d, cfg_type
                                                                                                            m5d, cfg))
                         # При ошибке выполнения запроса сообщаем в лог о проблеме
                         except pymysql.Error as err:
-                            logger.info("ERROR: MySQL Query Error: %s", err.args[1])
+                            logger.info(f"ERROR: Send config to MySQL, Query Error: {err.args[1]}")
                         # Либо сообщаем об успешной операции записи
                         else:
                             logger.info("INFO: Succesfully sent %s bytes to MySQL for '%s' ('%s'). Request from %s",
@@ -631,10 +631,10 @@ def main():
     timer = int(time.time())
     sltimer = int(time.time())
     # Устанавливаем паузу при опросе UDP-сокета по умолчанию
-    sleeptime = sleep_def
+    sleeptime: float = sleep_def
     # Объявляем начальные значение для счетчиков запросов 'read' и 'write'
-    tftp_rcnt = 0
-    tftp_wcnt = 0
+    tftp_rcnt: int = 0
+    tftp_wcnt: int = 0
 
     # Получаем информацию о коммутаторах и их портах из базы данных
     devices_tmp, ports_tmp = get_data_from_db()
@@ -936,7 +936,7 @@ def main():
                     else:
                         # Пробуем отправить подтверждение блока или начала передачи (ответ на WRQ, tftp_block равен 0)
                         try:
-                            tftp.sendto(chr(0) + chr(4) + (lambda x: chr(x // 256) + chr(x % 256))(int(tftp_block)),
+                            tftp.sendto((chr(0) + chr(4) + (lambda x: chr(x // 256) + chr(x % 256))(int(tftp_block))).encode('utf-8'),
                                         (rem_ip, rem_port))
                         # Обрабатываем возможную ошибку сокета
                         except socket.error as err:

@@ -210,7 +210,7 @@ enable snmp
 :::*sntp*:::
 # SNTP
 
-config time_zone operator + hour 3 min 0
+config time_zone operator + hour 4 min 0
 config dst disable
 config sntp primary 10.200.201.34
 enable sntp
