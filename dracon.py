@@ -249,10 +249,8 @@ def put_config_to_my_sql(direction, cfg, target, name, switch, ip, m5d, cfg_type
                     # Если hash уникален (еще не встречался), записываем конфиг в базу
                     if unique_hash:
                         try:
-                            mysql_cr.execute(
-                                "INSERT INTO {0}.{1} ({1}.hash, {1}.config) VALUES ('{2}', '{3}');".format(mysql_base_w,
-                                                                                                           mysql_ctbl_w,
-                                                                                                           m5d, cfg))
+                            sql_put_config = f"INSERT INTO `{mysql_ctbl_w}` (`hash`, `config`) VALUES (%s, %s)"
+                            mysql_cr.execute(sql_put_config, (m5d, cfg))
                         # При ошибке выполнения запроса сообщаем в лог о проблеме
                         except pymysql.Error as err:
                             logger.info(f"ERROR: Send config to MySQL, Query Error: {err.args[1]}")
