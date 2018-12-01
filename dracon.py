@@ -594,7 +594,8 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
                                     # Пробуем применить пользовательскую функцию. Имя функции получаем из шаблона.
                                     # Сами функции хранятся в модуле dfunc.
                                     new_cf_line = new_cf_line.replace(fn_list[0], getattr(dfunc, fn_list[1])(fn_param))
-                                except:
+                                except Exception as err:
+                                    logger.debug(f'Error while applying user function "{fn_list[1]}": {err}')
                                     new_cf_line = "#" + new_cf_line
 
                         data += new_cf_line + "\n"

@@ -1,4 +1,4 @@
-def Translit(srcstr):
+def translit(srcstr):
     try:
         new_str = str(srcstr, 'utf-8')
     except:
@@ -20,7 +20,7 @@ def Translit(srcstr):
     translitstring = []
     for c in new_str:
         translitstring.append(conversion.setdefault(c, c))
-    return ''.join(translitstring).encode("utf-8")
+    return ''.join(translitstring)
 
 
 # Пользовательская функция: Получение hex-значения 2-го октета IP-адреса
@@ -57,17 +57,17 @@ def fn_xp(n):
 
 # Пользовательская функция: Получение транслитерированного значения поля custom до разделителя '|'
 def fn_tr_cst1(src):
-    return Translit(src.split('|')[0])
+    return translit(src.split('|')[0])
 
 
 # Пользовательская функция: Получение транслитерированного значения поля custom после разделителя '|'
 def fn_tr_cst2(src):
-    return Translit(src.split('|')[1])
+    return translit(src.split('|')[1])
 
 
 # Пользовательская функция: Транслитерация переданного значения
 def fn_tr(src):
-    return Translit(src)
+    return translit(src)
 
 
 # Пользовательская функция: получение части строки до разделителя '|' (без транслитерации)
