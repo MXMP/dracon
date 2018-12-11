@@ -287,6 +287,10 @@ config dhcp_relay option_82 policy keep
 config dhcp_relay add ipif System 10.200.201.34
 config dhcp_relay add ipif System 10.200.201.134
 config dhcp_relay option_82 remote_id user_define {$target}
+config dhcp_relay ports [mags] state disable
+config dhcp_relay ports [ss] state  enable
+config dhcp_relay ports [vp] state disable
+config dhcp_relay ports [eq] state enable
 enable dhcp_relay
 
 
