@@ -30,16 +30,30 @@ logger.addHandler(log_handler)
 logger.setLevel(logging.DEBUG)
 
 
-def md5(src):
+def text_to_bytes(string: str) -> bytes:
+    if not isinstance(string, bytes):
+        return bytes(string, encoding='ascii')
+    return string
+
+
+def pack_short(number):
+    """
+    Create big-endian short byte string out of integer.
+    """
+    return number.to_bytes(2, byteorder='big')
+
+
+def md5(src) -> str:
     """
     Функция для вычисления MD5 хеш-суммы.
 
-    :param src:
-    :return:
+    :param src: текст конфигурации или бинарные данные из файла с ПО
+    :rtype: str
+    :return: строка с хэшем для данных
     """
 
     md5hash = hashlib.md5()
-    md5hash.update(src.encode('utf-8'))
+    md5hash.update(text_to_bytes(src))
     return md5hash.hexdigest()
 
 
@@ -469,8 +483,8 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
     :param sw:
     :param custom:
     :param ports:
-    :param transfer:
-    :param data_type:
+    :param transfer: тип передачи
+    :param data_type: тип данных (ПО/конфиг/бэкап)
     :return:
     """
 
@@ -483,9 +497,8 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
         # Если тип передачи 'octet' (без изменений)...
         if transfer == 'octet':
             try:
-                # ... пытаемся открыть файл
-                fw_file = open(fw_path + get_fw_file_name(sw), 'r')
-            except:
+                fw_file = open(fw_path + get_fw_file_name(sw), 'rb')
+            except IOError:
                 # Если не удалось - помещаем сообщение об ошибке в данные и пишем об этом в лог
                 data = "# ERROR: Can't open file %s%s" % (fw_path, get_fw_file_name(sw))
                 logger.info("ERROR: Can't open file '%s%s'!", fw_path, get_fw_file_name(sw))
@@ -734,9 +747,6 @@ def main():
             if tftp_type == 'RRQ':
                 tftp_rcnt += 1
                 logger.info(f"INFO: -->Request (RRQ) from {dip} for device {dev}. Requested file: '{tftp_filename}'")
-                # Пример:
-                # INFO: -->Request (RRQ) from 10.137.130.56:52843 for device '10.99.0.2' (DES-3200-28).
-                # Requested file: 'cfg'
 
                 # Можно запросить данные для произвольного устройства, но отдать - только для имеющегося.
                 # Потому на выходе может быть только реальный IP
@@ -789,20 +799,19 @@ def main():
 
             # Проверяем, существует ли данные для данного соединения. Если да - получаем количество блоков
             try:
-                cfg_fw[rem_ip][rem_port]['data'][0]
-            except:
-                total_blocks = - 1
-            else:
                 total_blocks = cfg_fw[rem_ip][rem_port]['data'][0]
+            except IndexError:
+                total_blocks = - 1
 
             # Если блок меньше общего количество блоков и ожидается передача, тогда начинаем передачу.
             # Если данных еще не существует, то условие не выполнится ( -1 < -1)
             if (tftp_block < total_blocks) & ((tftp_type == 'RRQ') | (tftp_type == 'ACK')):
                 # Пробуем отправить данные
                 try:
-                    send_data = chr(0) + chr(3) + (lambda x: chr(x // 256) + chr(x % 256))(tftp_block + 1) + str(
-                        cfg_fw[rem_ip][rem_port]['data'][tftp_block + 1])
-                    tftp.sendto(send_data.encode('utf-8'), (rem_ip, rem_port))
+                    block_number = pack_short(tftp_block + 1)
+                    part_of_data = text_to_bytes(cfg_fw[rem_ip][rem_port]['data'][tftp_block + 1])
+                    send_data = b'\x00\x03' + block_number + part_of_data
+                    tftp.sendto(send_data, (rem_ip, rem_port))
                 # Обрабатываем возможную ошибку сокета, делаем запись в логе и завершаем работу
                 except socket.error as err:
                     logger.info("CRITICAL: Socket Error (DATA): %s. Exiting...", err.args[1])
@@ -820,11 +829,8 @@ def main():
                         # Контрольная хеш-сумма
                         m5d = cfg_fw[rem_ip][rem_port]['md5']
                         # Пишем в лог о старте передачи
-                        logger.info("INFO: <--Sending data  to   %s for device %s. Prepared    file: %s, md5: %s", dip,
-                                    dev, fil, m5d)
-                    # Пример:
-                    # INFO: <--Sending data  to   10.137.130.56:52843 for device '10.99.0.2' (DES-3200-28).
-                    # Prepared    file: 'cfg', md5: c6c253ff4110f77b917901bb89d762df
+                        logger.info("INFO: <--Sending data to %s for device %s. Prepared file: %s, md5: %s", dip, dev,
+                                    fil, m5d)
 
                     # Обрабатываем ситуацию, когда мы получили подтверждение от предпоследнего блока и
                     # только что отправили последний
@@ -850,9 +856,6 @@ def main():
                         logger.info(
                             "INFO: Successfully sent to  %s for device %s. Transferred file: %s. Size: %s, blocks: %s",
                             dip, dev, fil, fln, blk)
-                    # Пример:
-                    # INFO: Successfully sent to  10.137.130.56:52843 for device '10.99.0.2' (DES-3200-28).
-                    # Transferred file: 'cfg', blocks: 1
 
             # Если получено подтверждение передачи последнего блока:
             if (tftp_block == total_blocks) & (tftp_type == 'ACK'):

@@ -4,3 +4,4 @@ tests/
 .mypy_cache/
 *.pyc
 __pycache__/
+fw/
