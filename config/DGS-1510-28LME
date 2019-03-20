@@ -16,13 +16,13 @@ delete access_profile profile_name security
 delete access_profile profile_name pcf
 
 create access_profile profile_id 1 profile_name vip ethernet source_mac 00-00-00-00-00-00
-#to manually allow any traffic for port X add following rule:
-#config access_profile profile_name vip add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit
+{#to manually allow any traffic for port X add following rule:#}
+{#config access_profile profile_name vip add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit#}
 
 create access_profile profile_id 2 profile_name security ip destination_ip_mask 0.0.0.0 tcp dst_port_mask 0xFFFF
-#deny multicast from subscribers
-config access_profile profile_name security add access_id auto_assign ip destination_ip 224.0.0.0 mask 240.0.0.0 port [ss] deny
-#deny TCP 135,139,445,2869,3587,5357,5358
+{#deny multicast from subscribers#}
+config access_profile profile_name security add access_id auto_assign ip destination_ip 224.0.0.0 mask 240.0.0.0 port {{ ss }} deny
+{#deny TCP 135,139,445,2869,3587,5357,5358#}
 config access_profile profile_name security add access_id auto_assign ip tcp dst_port  135 port [ss] deny
 config access_profile profile_name security add access_id auto_assign ip tcp dst_port  139 port [ss] deny
 config access_profile profile_name security add access_id auto_assign ip tcp dst_port  445 port [ss] deny
