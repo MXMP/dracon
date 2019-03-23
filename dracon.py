@@ -12,6 +12,7 @@ from math import ceil
 
 import psycopg2
 import pymysql
+from jinja2 import Environment, FileSystemLoader
 
 from daemon import Daemon
 from dconfig import dev_types, ports_types, mags_list, cf_path, fw_path, fw_names, commands, helpinfo
@@ -518,6 +519,8 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
     if (data_type == 'config') & (target is not None):
         # Если имя файла (которое является и командой) присутствует в наборе списков команд:
         if fname in list(commands.keys()):
+            env = Environment(loader=FileSystemLoader(cf_path))
+            template = env.get_template(sw)
             try:
                 cf_file = open(cf_path + sw, 'rt')
                 cf_data = cf_file.read().split(':::')
