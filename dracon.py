@@ -12,7 +12,7 @@ from math import ceil
 
 import psycopg2
 import pymysql
-from jinja2 import Environment, FileSystemLoader
+import jinja2
 
 from daemon import Daemon
 from dconfig import dev_types, ports_types, mags_list, cf_path, fw_path, fw_names, commands, helpinfo
@@ -519,16 +519,13 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
     if (data_type == 'config') & (target is not None):
         # Если имя файла (которое является и командой) присутствует в наборе списков команд:
         if fname in list(commands.keys()):
-            env = Environment(loader=FileSystemLoader(cf_path))
-            template = env.get_template(sw)
+            # создаем окружение для Jinja2 и загружаем шаблон для коммутатора
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(cf_path))
             try:
-                cf_file = open(cf_path + sw, 'rt')
-                cf_data = cf_file.read().split(':::')
-                cf_file.close()
-                cf_data = dict(cf_data[i:i + 2] for i in range(1, len(cf_data), 2))
-            except:
-                cf_data = ''
-                logger.info("ERROR: Can't open file '%s%s' or this file is incorrect!", cf_path, sw)
+                template = env.get_template(sw)
+            except (jinja2.TemplateSyntaxError, jinja2.TemplateNotFound) as e:
+                logger.error(e)
+                return '', ''
 
             # Получаем диапазоны и списки портов в зависимости от их статуса
             p_stats = p_stat(ports)
@@ -541,10 +538,10 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
 
             # Перебираем все команды внутри списка для данной команды
             for cmd in commands[fname]:
-                if cmd in cf_data:
+                if cmd in template.blocks:
                     # Находим для команды (имени файла) соответствующий блок, разбираем его на строки
                     # и перебираем их все
-                    for cf_line in cf_data[cmd].split("\n"):
+                    for cf_line in template.blocks[cmd].split("\n"):
                         # Получаем копию текущей строки, которую модернизируем при наличии в ней шаблонов
                         new_cf_line = cf_line
 
@@ -675,7 +672,7 @@ def main():
         tftp.bind((interface_ip, port))
     # При возникновении ошибки делаем запись в логе и завершаем работу
     except socket.error as err:
-        logger.info("CRITICAL: Socket Error: %s Exiting...", err.args[1])
+        logger.error("CRITICAL: Socket Error: %s Exiting...", err.args[1])
         sys.exit(2)
     # При отсутствии ошибки переводим сокет в режим non blocking
     else:
