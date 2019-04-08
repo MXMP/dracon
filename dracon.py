@@ -26,6 +26,11 @@ logger.addHandler(log_handler)
 logger.setLevel(logging.DEBUG)
 
 
+class CustomUndefined(jinja2.StrictUndefined):
+    def __getattr__(self, item):
+        return f'#ERROR - {self._undefined_name}#'
+
+
 def text_to_bytes(string: str) -> bytes:
     if not isinstance(string, bytes):
         return bytes(string, encoding='ascii')
@@ -407,6 +412,36 @@ def tftp_prepdata(tftpdata, ip):
     return tftp_type, transfer, tftp_filename, tftp_block, target_ip, data_type, data_upl
 
 
+def get_range(ports_gr):
+    """
+    Функция получения диапазона портов.
+
+    :param ports_gr:
+    :return:
+    """
+
+    # Получаем список ключей из словаря. При этом удаляем дубликаты (list(set())) и сортируем список
+    _range = sorted(list(set(ports_gr.keys())))
+    # Получаем два временных списка с ключами. Ключи - это номера портов. Первй список будет преобразован
+    # в диапазон, а второй возвращен без преобразования
+    p_range = list(_range)
+    full_p_range = list(_range)
+    # Перебираем основной список, получая индекс элемента (i) и сам элемент (a)
+    for i, a in enumerate(_range):
+        # Обрабатываем все элементы кроме минимального и максимального
+        # Если слева и справа от текущего номера идут последовательно,
+        # заменяем текущий элемент (который означает номер порта) на '*'
+        if (a > min(_range)) & (a < max(_range)):
+            if (a == _range[i - 1] + 1) & (a == _range[i + 1] - 1):
+                p_range[i] = '*'
+    # Из списка получаем строку, где элементы разделены запятыми, а '*' и ',-' заменены на '-'
+    p_range = ','.join(str(n) for n in p_range).replace('*,', '-').replace(',-', '-')
+    # Удаляем двойные символы '-', заменяя их на одинарные
+    while p_range.find('--') != -1:
+        p_range = p_range.replace('--', '-')
+    return {'range': p_range, 'list': full_p_range}
+
+
 def p_stat(ports):
     """
     Функция, возвращающая список с типами портов и их диапазоном.
@@ -415,59 +450,33 @@ def p_stat(ports):
     :return:
     """
 
-    def get_range(ports_gr):
-        """
-        Функция получения диапазона портов.
-
-        :param ports_gr:
-        :return:
-        """
-
-        # Получаем список ключей из словаря. При этом удаляем дубликаты (list(set())) и сортируем список
-        _range = sorted(list(set(ports_gr.keys())))
-        # Получаем два временных списка с ключами. Ключи - это номера портов. Первй список будет преобразован
-        # в диапазон, а второй возвращен без преобразования
-        p_range = list(_range)
-        full_p_range = list(_range)
-        # Перебираем основной список, получая индекс элемента (i) и сам элемент (a)
-        for i, a in enumerate(_range):
-            # Обрабатываем все элементы кроме минимального и максимального
-            # Если слева и справа от текущего номера идут последовательно,
-            # заменяем текущий элемент (который означает номер порта) на '*'
-            if (a > min(_range)) & (a < max(_range)):
-                if (a == _range[i - 1] + 1) & (a == _range[i + 1] - 1):
-                    p_range[i] = '*'
-        # Из списка получаем строку, где элементы разделены запятыми, а '*' и ',-' заменены на '-'
-        p_range = ','.join(str(n) for n in p_range).replace('*,', '-').replace(',-', '-')
-        # Удаляем двойные символы '-', заменяя их на одинарные
-        while p_range.find('--') != -1:
-            p_range = p_range.replace('--', '-')
-        return {'range': p_range, 'list': full_p_range}
-
     # 1 - абонентский порт, 2 - магистральный, 3 - сломанный, 4 - VIP-клиент, 5 - вход
     # 6 - нестандартный, 7 - оборудование, 8 - вход (патчкорд), 9 - магистраль (патчкорд)
     # Создаем результирующий словарь
     res_dict = {}
     # Проходим по всему списку типов (перебираем ключи)
-    for pt in list(ports_types.keys()):
+    for port_type_index in list(ports_types.keys()):
         # Получаем временный словарь из переданного функции
         ports_tmp = dict(ports)
-        # Перебираем основной словарь. 'p' - номер порта. Задача: оставить порты только нужного типа
-        for p in ports:
+        # Перебираем основной словарь. Задача: оставить порты только нужного типа
+        for port_num in ports:
             # Если тип порта для основного словаря не равен определенному типу, удаляем соответствующий элемент
             # во временном словаре
-            if ports[p]['ptype'] != pt:
-                del ports_tmp[p]
-        res_dict[ports_types[pt]] = get_range(ports_tmp)
+            if ports[port_num]['ptype'] != port_type_index:
+                del ports_tmp[port_num]
+        if len(ports_tmp):
+            res_dict[ports_types[port_type_index]] = get_range(ports_tmp)
+
     ports_tmp = dict(ports)
     # Получаем диапазон и список вообще всех портов
     res_dict['all'] = get_range(ports_tmp)
     # Во временном списке оставляем порты с типом 2, 5, 8 и 9
-    for p in ports:
-        if int(ports[p]['ptype']) not in mags_list:
-            del ports_tmp[p]
+    for port_num in ports:
+        if int(ports[port_num]['ptype']) not in mags_list:
+            del ports_tmp[port_num]
     # Получаем диапазон и список магистральных портов
-    res_dict['mags'] = get_range(ports_tmp)
+    if len(ports_tmp):
+        res_dict['mags'] = get_range(ports_tmp)
     return res_dict
 
 
@@ -519,6 +528,7 @@ def get_data(target, fname, sw, custom, ports, transfer, data_type):
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(cf_path))
             env.trim_blocks = True
             env.lstrip_blocks = True
+            env.undefined = CustomUndefined
             for filter_name, filter_function in inspect.getmembers(dfunc, inspect.isfunction):
                 env.filters[filter_name] = filter_function
             try:
