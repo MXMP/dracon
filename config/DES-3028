@@ -13,45 +13,45 @@
     delete access_profile profile_id {{ profile_id }}
 {% endfor %}
 
-#allow traffic for specified ports
+{# allow traffic for specified ports #}
 create access_profile ethernet source_mac 00-00-00-00-00-00 profile_id 1
-#to manually allow any traffic for port X add following rule:
-#config access_profile profile_id 1 add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit
+{# to manually allow any traffic for port X add following rule: #}
+{# config access_profile profile_id 1 add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit #}
 
-#allow tagged frames
+{# allow tagged frames #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 profile_id 2
 config access_profile profile_id 2 add access_id auto_assign packet_content offset 12 0x81000000 port all permit
 
-#deny networks 172.17.0.0/16 and 10.99.0.0/16 for subscribers
+{# deny networks 172.17.0.0/16 and 10.99.0.0/16 for subscribers #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0xffff profile_id 3
 config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0xac11 port {{ p_stats.ss.range }} deny
 config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0x0a63 port {{ p_stats.ss.range }} deny
-#QoS mapping for subnets 172.17.0.0/16 and 10.99.0.0/16
+{# QoS mapping for subnets 172.17.0.0/16 and 10.99.0.0/16 #}
 config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0xac11 port {{ p_stats.mags.range }} permit priority 7
 config access_profile profile_id 3 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0x0a63 port {{ p_stats.mags.range }} permit priority 7
 
-#allow individual source network for a specific subscriber. (!) this rule applies only to untagged traffic
+{# allow individual source network for a specific subscriber. (!) this rule applies only to untagged traffic #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0xffff 0xfef80000 profile_id 5
 {% for port_num in p_stats.ss.list -%}
     config access_profile profile_id 5 add access_id auto_assign packet_content offset 12 0x08000000 offset 24 0x0a{{ custom|fn_2oct }} offset 28 0x{{ custom|fn_3oct }}{{ port_num|dlink_offset_chunk_trailer }}0000 port {{ port_num }} permit
 {% endfor %}
 
-#permit ARP with correct 4th octet (between port*8 and port*8+7). (!) these rules applies only to untagged traffic
+{# permit ARP with correct 4th octet (between port*8 and port*8+7). (!) these rules applies only to untagged traffic #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0xf8 profile_id 6
 {% for port_num in p_stats.ss.list -%}
     config access_profile profile_id 6 add access_id auto_assign packet_content offset 12 0x08060000 offset 28 0x{{ port_num|dlink_offset_chunk_trailer }} port {{ port_num }} permit
 {% endfor %}
 
-#DSCP mapping on valid multicast groups
+{# DSCP mapping on valid multicast groups #}
 create access_profile ip dscp profile_id 7
 config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port {{ p_stats.up.range }} permit priority 6
 config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port {{ p_stats.pu.range }} permit priority 6
 
-#deny multicast from subscribers. (!) this rule applies only to untagged traffic
+{# deny multicast from subscribers. (!) this rule applies only to untagged traffic #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0x0000f000 profile_id 8
 config access_profile profile_id 8 add access_id auto_assign packet_content offset 12 0x08000000 offset 28 0x0000e000 port {{ p_stats.ss.range }} deny
 
-#deny ARP (optional), IP (optional) and broadcast. permit IPv6. deny unknown ethernet. (for subscribers)
+{# deny ARP (optional), IP (optional) and broadcast. permit IPv6. deny unknown ethernet. (for subscribers) #}
 create access_profile ethernet source_mac 00-00-00-00-00-00 destination_mac FF-FF-FF-FF-FF-FF ethernet_type profile_id 9
 config access_profile profile_id 9 add access_id auto_assign ethernet ethernet_type 0x0806 port {{ p_stats.ss.range }} deny
 config access_profile profile_id 9 add access_id auto_assign ethernet ethernet_type 0x0800 port {{ p_stats.ss.range }} deny
@@ -62,7 +62,7 @@ config access_profile profile_id 9 add access_id auto_assign ethernet source_mac
 {% endblock %}
 
 {% block cpu_acl %}
-# CPU ACL
+{#  CPU ACL #}
 delete cpu access_profile profile_id 1
 delete cpu access_profile profile_id 2
 delete cpu access_profile profile_id 3
@@ -75,7 +75,7 @@ config cpu access_profile profile_id 1 add access_id 1 ip destination_ip 224.0.0
 create cpu access_profile profile_id 2 ip destination_ip_mask 255.255.248.0
 config cpu access_profile profile_id 2 add access_id 1 ip destination_ip 239.1.8.0 port all permit
 
-#deny multicast-query for subscribers
+{# deny multicast-query for subscribers #}
 create cpu access_profile profile_id 3 ip destination_ip_mask 240.0.0.0
 config cpu access_profile profile_id 3 add access_id 1 ip destination_ip 224.0.0.0 port {{ p_stats.ss.range }} deny
 {% endblock %}
