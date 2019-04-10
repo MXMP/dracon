@@ -526,7 +526,6 @@ def get_data(target, fname, sw, custom, ports, transfer, data_type):
         if fname in list(commands.keys()):
             # создаем окружение для Jinja2, загружаем фильтры и шаблон для коммутатора
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(cf_path))
-            env.trim_blocks = True
             env.lstrip_blocks = True
             env.undefined = CustomUndefined
             for filter_name, filter_function in inspect.getmembers(dfunc, inspect.isfunction):
