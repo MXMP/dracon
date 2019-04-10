@@ -57,22 +57,8 @@
     {# replace priority on valid multicast groups #}
     config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xef01 offset3 0x0800 port {{ p_stats.up.range }} permit priority 6
 
-    {# deny TCP 135,139,445,2869,3587,5357,5358 #}
     create access_profile packet_content_mask offset1 l3 8 0xFF offset2 l3 22 0xFFFF profile_id 4
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x0087 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x008B port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x01BD port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x0B35 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x0E03 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x14ED port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x14EE port {{ p_stats.ss.range }} deny
-    {# deny UDP 135,213,445,3540,3587,5355 #}
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x0087 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x00D5 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x01BD port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x0DD4 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x0E03 port {{ p_stats.ss.range }} deny
-    config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x14EB port {{ p_stats.ss.range }} deny
+    {% include 'dlink_deny_ports_pcf' %}
 
     {# deny multicast from subscribers #}
     create access_profile ip destination_ip_mask 240.0.0.0 profile_id 5

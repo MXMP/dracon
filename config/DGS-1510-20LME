@@ -22,14 +22,7 @@ create access_profile profile_id 1 profile_name vip ethernet source_mac 00-00-00
 create access_profile profile_id 2 profile_name security ip destination_ip_mask 0.0.0.0 tcp dst_port_mask 0xFFFF
 {# deny multicast from subscribers  #}
 config access_profile profile_name security add access_id auto_assign ip destination_ip 224.0.0.0 mask 240.0.0.0 port {{ p_stats.ss.range }} deny
-{# deny TCP 135,139,445,2869,3587,5357,5358  #}
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port  135 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port  139 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port  445 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 2869 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 3587 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 5357 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 5358 port {{ p_stats.ss.range }} deny
+{% include 'dlink_deny_tcp_ports' %}
 {# deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20, 172.17.064.0/20, 172.17.080.0/20 for subscribers  #}
 {# deny networks 172.17.096.0/20, 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20, 172.17.160.0/20 for subscribers  #}
 {# deny networks 172.17.176.0/20, 172.17.192.0/20, 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 for subscribers  #}

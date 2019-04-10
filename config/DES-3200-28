@@ -10,7 +10,7 @@
 {% block acl %}
 # ACL
 
-{% block delete access_profile profile_id 1 %}
+{# delete access_profile profile_id 1 #}
 delete access_profile profile_id 2
 delete access_profile profile_id 3
 delete access_profile profile_id 4
@@ -23,18 +23,18 @@ delete access_profile profile_id 10
 delete access_profile profile_id 11
 delete access_profile profile_id 12
 
-{% block VIP-profile. This profile is not automatically deleted where configuration is updated %}
+{# VIP-profile. This profile is not automatically deleted where configuration is updated #}
 create access_profile packet_content_mask c_tag 0xFFF0 offset1 l2 0 0x0 profile_id 1
-{% block to manually allow vlans with tag 0-15 for port X add following rule: %}
-{% block config access_profile profile_id 1 add access_id auto_assign packet_content c_tag 0x0000 port X permit %}
-{% block to manually allow any traffic for port X add following rule: %}
-{% block config access_profile profile_id 1 add access_id auto_assign packet_content port X permit %}
+{# to manually allow vlans with tag 0-15 for port X add following rule: #}
+{# config access_profile profile_id 1 add access_id auto_assign packet_content c_tag 0x0000 port X permit #}
+{# to manually allow any traffic for port X add following rule: #}
+{# config access_profile profile_id 1 add access_id auto_assign packet_content port X permit #}
 
-{% block deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20 %}
-{% block deny networks 172.17.064.0/20, 172.17.080.0/20, 172.17.096.0/20 %}
-{% block deny networks 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20 %}
-{% block deny networks 172.17.160.0/20, 172.17.176.0/20, 172.17.192.0/20 %}
-{% block deny networks 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 %}
+{# deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20 #}
+{# deny networks 172.17.064.0/20, 172.17.080.0/20, 172.17.096.0/20 #}
+{# deny networks 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20 #}
+{# deny networks 172.17.160.0/20, 172.17.176.0/20, 172.17.192.0/20 #}
+{# deny networks 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 #}
 create access_profile packet_content_mask offset1 l2 0 0xFFFF offset2 l3 16 0xFFFF offset3 l3 18 0xF000 profile_id 3
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x1000 port {{ p_stats.ss.range }} deny
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x2000 port {{ p_stats.ss.range }} deny
@@ -51,7 +51,7 @@ config access_profile profile_id 3 add access_id auto_assign packet_content offs
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xd000 port {{ p_stats.ss.range }} deny
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xe000 port {{ p_stats.ss.range }} deny
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xf000 port {{ p_stats.ss.range }} deny
-{% block deny network 10.99.0.0/16 for subscribers %}
+{# deny network 10.99.0.0/16 for subscribers #}
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a63 port {{ p_stats.ss.range }} deny
 {# replace priority for management networks 172.17.0.0/16 and 10.99.0.0/16 #}
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
@@ -59,22 +59,8 @@ config access_profile profile_id 3 add access_id auto_assign packet_content offs
 {# replace priority on valid multicast groups #}
 config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xef01 offset3 0x0800 port {{ p_stats.up.range }} permit priority 6
 
-{# deny TCP 135,139,445,2869,3587,5357,5358 #}
 create access_profile packet_content_mask offset1 l3 8 0xFF offset2 l3 22 0xFFFF profile_id 4
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x0087 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x008B port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x01BD port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x0B35 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x0E03 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x14ED port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x6 offset2 0x14EE port {{ p_stats.ss.range }} deny
-{# deny UDP 135,213,445,3540,3587,5355 #}
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x0087 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x00D5 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x01BD port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x0DD4 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x0E03 port {{ p_stats.ss.range }} deny
-config access_profile profile_id 4 add access_id auto_assign packet_content offset1 0x11 offset2 0x14EB port {{ p_stats.ss.range }} deny
+{% include 'dlink_deny_ports_pcf' %}
 
 {# deny multicast from subscribers #}
 create access_profile ip destination_ip_mask 240.0.0.0 profile_id 5
