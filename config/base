@@ -1,0 +1,39 @@
+{% block header %}{% endblock %}
+
+{% block acl %}{% endblock %}
+
+{% block cpu_acl %}{% endblock %}
+
+{% block accounts %}{% endblock %}
+
+{% block stp_lbd %}{% endblock %}
+
+{% block snmp %}{% endblock %}
+
+{% block sntp %}{% endblock %}
+
+{% block lldp %}{% endblock %}
+
+{% block filtering %}{% endblock %}
+
+{% block trusted_hosts %}{% endblock %}
+
+{% block ipm %}{% endblock %}
+
+{% block dhcp_relay %}{% endblock %}
+
+{% block igmp_snooping %}{% endblock %}
+
+{% block igmp_auth %}{% endblock %}
+
+{% block aaa %}{% endblock %}
+
+{% block multi_filter %}{% endblock %}
+
+{% block cos %}{% endblock %}
+
+{% block mon_log %}{% endblock %}
+
+{% block p_desc %}{% endblock %}
+
+{% block bottom %}{% endblock %}
