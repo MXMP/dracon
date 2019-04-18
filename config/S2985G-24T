@@ -1,0 +1,218 @@
+{% block header %}
+{% endblock %}
+
+{% block acl %}
+!
+ip access-list extended incoming-users
+  deny tcp any-source any-destination d-port 135
+  deny tcp any-source any-destination d-port 139
+  deny tcp any-source any-destination d-port 445
+  deny tcp any-source any-destination d-port 2869
+  deny tcp any-source any-destination d-port 3587
+  deny tcp any-source any-destination d-port 5357
+  deny tcp any-source any-destination d-port 3588
+  deny ip any-source 172.17.0.0 0.0.255.255
+  deny ip any-source 10.99.0.0 0.0.255.255
+  exit
+!
+vacl ip access-group incoming-users in traffic-statistic vlan {{ custom|get_vlan_id }}
+!
+{% endblock %}
+
+{% block cpu_acl %}
+{% endblock %}
+
+{% block accounts %}
+!
+service password-encryption
+!
+username admin privilege 15 password 7 1479c63db6ea34f5f2b17589a68fd6c2
+!
+{% endblock %}
+
+{% block stp_lbd %}
+!
+loopback-detection control-recovery timeout 300
+!
+loopback-detection trap enable
+!
+loopback-detection interval-time 10 5
+!
+Interface Ethernet1/0/{{ p_stats.ss.range|fn_to_snr_port_range }}
+ loopback-detection specified-vlan 50;{{ custom|get_vlan_id }}
+ loopback-detection control shutdown
+!
+Interface Ethernet1/0/{{ p_stats.mags.range|fn_to_snr_port_range }}
+ no loopback-detection specified-vlan
+ no loopback-detection control
+!
+{% endblock %}
+
+{% block snmp %}
+!
+hostname {{ target }} : {{ custom|fn_split_before }}. ({{ datetime }})
+sysLocation {{ custom|fn_tr_cst2 }}
+sysContact 8-800-5500-800 (PowerNet)
+!
+snmp-server enable
+snmp-server securityip 10.200.201.180
+snmp-server securityip 10.200.201.185
+snmp-server securityip 10.200.201.139
+snmp-server securityip 10.200.201.137
+snmp-server community ro 7 cVJquniVGP0=
+snmp-server community rw 7 Hk54TkVGNtQQzOFdt5y42Q==
+snmp-server enable traps
+snmp-server enable traps mac-notification
+!
+{% endblock %}
+
+{% block sntp %}
+!
+clock timezone VLG add 4 0
+!
+ntp enable
+ntp server 10.200.201.34
+!
+{% endblock %}
+
+{% block lldp %}
+!
+lldp enable
+!
+Interface Ethernet1/0/{{ p_stats.all.range|fn_to_snr_port_range }}
+ lldp disable
+!
+Interface Ethernet1/0/{{ p_stats.mags.range|fn_to_snr_port_range }}
+ lldp trap enable
+!
+{% endblock %}
+
+{% block filtering %}
+!
+anti-arpscan enable
+anti-arpscan trust ip {{ custom|get_gateway_ip }} 255.255.255.255
+anti-arpscan trap enable
+!
+am enable
+!
+Interface Ethernet1/0/{{ p_stats.all.range|fn_to_snr_port_range }}
+ no am port
+!
+{% for port_num in p_stats.ss.list %}
+Interface Ethernet1/0/{{ port_num }}
+  am port
+  am ip-pool {{ custom|fn_first_3_octets }}.{{ 8 * port_num }} 8
+!
+{% endfor %}
+!
+Interface Ethernet1/0/{{ p_stats.mags.range|fn_to_snr_port_range }}
+ anti-arpscan trust port
+!
+isolate-port group users
+!
+dosattack-check srcip-equal-dstip enable
+dosattack-check tcp-flags enable
+!
+{% endblock %}
+
+{% block trusted_hosts %}
+{% endblock %}
+
+{% block ipm %}
+{% endblock %}
+
+{% block dhcp_relay %}
+!
+service dhcp
+!
+ip forward-protocol udp bootps
+ip dhcp relay information option
+ip dhcp relay information option subscriber-id format hex
+ip dhcp relay information option self-defined remote-id string xx{{ target }}
+ip dhcp relay share-vlan {{ custom|get_mvlan_id }} sub-vlan {{ custom|get_vlan_id }}
+!
+interface Vlan{{ custom|get_mvlan_id }}
+ ip helper-address 10.200.201.34
+ ip helper-address 10.200.201.134
+!
+{% endblock %}
+
+{% block igmp_snooping %}
+!
+vlan 50
+ name mvr
+ multicast-vlan
+ multicast-vlan association {{ custom|get_vlan_id }}
+!
+ip igmp snooping
+ip igmp snooping authentication radius none
+ip igmp snooping vlan 50
+ip igmp snooping vlan 50 mrouter-port interface Ethernet1/0/{{ p_stats.up.range if p_stats.up is defined else p_stats.pu.range }}
+ip igmp snooping vlan 50 report source-address 10.11.0.2
+!
+{% endblock %}
+
+{% block igmp_auth %}
+{% endblock %}
+
+{% block aaa %}
+!
+authentication line console login local
+authentication line vty login radius local
+authentication line web login radius local
+authorization line vty exec radius local
+!
+radius-server key 7 2TnZXHjlrSY=
+radius-server authentication host 10.200.201.134 access-mode telnet
+radius-server authentication host 10.200.201.234 access-mode telnet
+aaa enable
+!
+{% endblock %}
+
+{% block multi_filter %}
+!
+access-list 5000 permit ip any-source 239.1.0.0 0.0.255.255
+access-list 6000 permit ip any-source 239.1.0.0 0.0.255.255
+!
+ip multicast source-control
+multicast destination-control
+!
+Interface Ethernet1/0/{{ p_stats.ss.range|fn_to_snr_port_range }}
+ ip multicast destination-control access-group 6000
+!
+Interface Ethernet1/0/{{ p_stats.mags.range|fn_to_snr_port_range }}
+ ip multicast source-control access-group 5000
+!
+{% endblock %}
+
+{% block cos %}
+{% endblock %}
+
+{% block mon_log %}
+!
+Interface Ethernet1/0/{{ p_stats.ss.range|fn_to_snr_port_range }}
+ mac-notification all trap
+!
+Interface Ethernet1/0/{{ p_stats.mags.range|fn_to_snr_port_range }}
+ ethernet-oam
+!
+mac-address-table notification
+!
+telnet-server max-connection 16
+!
+{% endblock %}
+
+{% block p_desc %}
+!
+{% for portnum in comments|dictsort -%}
+    Interface Ethernet1/0/{{ portnum[0] }}
+      description "{{ comments[portnum[0]]|fn_tr }}"
+    !
+{% endfor %}
+
+{% endblock %}
+
+{% block bottom %}
+!
+end
+{% endblock %}
