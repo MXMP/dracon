@@ -1,0 +1,4 @@
+# PORTS DESCRIPTION
+{% for portnum in comments|dictsort -%}
+    config ports {{ portnum[0] }} description "{{ comments[portnum[0]]|fn_tr }}"
+{% endfor %}

@@ -1,0 +1,4 @@
+{# deny TCP 135,139,445,2869,3587,5357,5358 #}
+{% for tcp_port in [135, 139, 445, 2869, 3587, 5357, 5358] -%}
+    config access_profile profile_name security add access_id auto_assign ip tcp dst_port {{ tcp_port }} port {{ p_stats.ss.range }} deny
+{% endfor %}

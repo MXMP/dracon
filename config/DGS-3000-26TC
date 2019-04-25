@@ -1,4 +1,4 @@
-:::*header*:::
+{% block header %}
 #-------------------------------------------------------------------------------
 #                    DGS-3000-26TC Gigabit Ethernet Switch
 #                                Configuration
@@ -6,146 +6,57 @@
 #                          Firmware: Build 1.14.B008
 #           Copyright(C) 2014 D-Link Corporation. All rights reserved.
 #-------------------------------------------------------------------------------
+{% endblock %}
 
-
-:::*acl*:::
+{% block acl %}
 # ACL
-
 delete access_profile profile_name vlandscp
 delete access_profile profile_name security
 delete access_profile profile_name pcf
 
 create access_profile profile_id 1 profile_name vip ethernet source_mac 00-00-00-00-00-00
-#to manually allow any traffic for port X add following rule:
-#config access_profile profile_name vip add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit
+{# to manually allow any traffic for port X add following rule: #}
+{# config access_profile profile_name vip add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit #}
 
 create access_profile profile_id 2 profile_name security ip destination_ip_mask 0.0.0.0 tcp dst_port_mask 0xFFFF
-#deny multicast from subscribers
-config access_profile profile_name security add access_id auto_assign ip destination_ip 224.0.0.0 mask 240.0.0.0 port [ss] deny
-#deny TCP 135,139,445,2869,3587,5357,5358
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port  135 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port  139 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port  445 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 2869 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 3587 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 5357 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip tcp dst_port 5358 port [ss] deny
-#deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20, 172.17.064.0/20, 172.17.080.0/20 for subscribers
-#deny networks 172.17.096.0/20, 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20, 172.17.160.0/20 for subscribers
-#deny networks 172.17.176.0/20, 172.17.192.0/20, 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 for subscribers
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.016.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.032.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.048.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.064.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.080.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.096.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.112.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.128.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.144.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.160.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.176.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.192.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.208.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.224.0 mask 255.255.240.0 port [ss] deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.240.0 mask 255.255.240.0 port [ss] deny
-#deny network 10.99.0.0/16 for subscribers
-config access_profile profile_name security add access_id auto_assign ip destination_ip 10.99.0.0 mask 255.255.0.0 port [ss] deny
-#replace priority for subnets 172.17.0.0/16 and 10.99.0.0/16
-config access_profile profile_name security add access_id auto_assign ip destination_ip   172.17.0.0 mask 255.255.0.0   port [mags] permit priority 7 replace_dscp_with 56
-config access_profile profile_name security add access_id auto_assign ip destination_ip    10.99.0.0 mask 255.255.0.0   port [mags] permit priority 7 replace_dscp_with 56
-config access_profile profile_name security add access_id auto_assign ip destination_ip 10.137.128.0 mask 255.255.248.0 port [mags] permit priority 7 replace_dscp_with 56
+{# deny multicast from subscribers #}
+config access_profile profile_name security add access_id auto_assign ip destination_ip 224.0.0.0 mask 240.0.0.0 port {{ p_stats.ss.range }} deny
+{% include 'dlink_deny_tcp_ports' %}
+{# deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20, 172.17.064.0/20, 172.17.080.0/20 for subscribers #}
+{# deny networks 172.17.096.0/20, 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20, 172.17.160.0/20 for subscribers #}
+{# deny networks 172.17.176.0/20, 172.17.192.0/20, 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 for subscribers #}
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.016.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.032.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.048.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.064.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.080.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.096.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.112.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.128.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.144.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.160.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.176.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.192.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.208.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.224.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.240.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+{# deny network 10.99.0.0/16 for subscribers #}
+config access_profile profile_name security add access_id auto_assign ip destination_ip 10.99.0.0 mask 255.255.0.0 port {{ p_stats.ss.range }} deny
+{# replace priority for subnets 172.17.0.0/16 and 10.99.0.0/16 #}
+config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.0.0 mask 255.255.0.0 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
+config access_profile profile_name security add access_id auto_assign ip destination_ip 10.99.0.0 mask 255.255.0.0 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
+config access_profile profile_name security add access_id auto_assign ip destination_ip 10.137.128.0 mask 255.255.248.0 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
 
 create access_profile profile_id 4 profile_name pcf packet_content_mask offset_chunk_1 3 0xFFFF offset_chunk_2 7 0xFFFFFEF8 offset_chunk_3 8 0xFFF80000
-#allow specific source network (10.XX.YY.port_N*8 0.0.1.7) for a customer
-config access_profile profile_name pcf add access_id   4 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}08 port  [ss#1] permit
-config access_profile profile_name pcf add access_id   8 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}10 port  [ss#2] permit
-config access_profile profile_name pcf add access_id  12 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}18 port  [ss#3] permit
-config access_profile profile_name pcf add access_id  16 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}20 port  [ss#4] permit
-config access_profile profile_name pcf add access_id  20 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}28 port  [ss#5] permit
-config access_profile profile_name pcf add access_id  24 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}30 port  [ss#6] permit
-config access_profile profile_name pcf add access_id  28 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}38 port  [ss#7] permit
-config access_profile profile_name pcf add access_id  32 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}40 port  [ss#8] permit
-config access_profile profile_name pcf add access_id  36 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}48 port  [ss#9] permit
-config access_profile profile_name pcf add access_id  40 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}50 port [ss#10] permit
-config access_profile profile_name pcf add access_id  44 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}58 port [ss#11] permit
-config access_profile profile_name pcf add access_id  48 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}60 port [ss#12] permit
-config access_profile profile_name pcf add access_id  52 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}68 port [ss#13] permit
-config access_profile profile_name pcf add access_id  56 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}70 port [ss#14] permit
-config access_profile profile_name pcf add access_id  60 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}78 port [ss#15] permit
-config access_profile profile_name pcf add access_id  64 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}80 port [ss#16] permit
-config access_profile profile_name pcf add access_id  68 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}88 port [ss#17] permit
-config access_profile profile_name pcf add access_id  72 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}90 port [ss#18] permit
-config access_profile profile_name pcf add access_id  76 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}98 port [ss#19] permit
-config access_profile profile_name pcf add access_id  80 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}A0 port [ss#20] permit
-config access_profile profile_name pcf add access_id  84 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}A8 port [ss#21] permit
-config access_profile profile_name pcf add access_id  88 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}B0 port [ss#22] permit
-config access_profile profile_name pcf add access_id  92 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}B8 port [ss#23] permit
-config access_profile profile_name pcf add access_id  96 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}C0 port [ss#24] permit
-config access_profile profile_name pcf add access_id 100 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}C8 port [ss#25] permit
-config access_profile profile_name pcf add access_id 104 packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{fn_2oct#custom}{fn_3oct#custom}D0 port [ss#26] permit
-#permit ARP with correct 4th octet (between port_N*8 and port_N*8+7) and even 3rd octet
-config access_profile profile_name pcf add access_id   5 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}080000 port  [ss#1] permit
-config access_profile profile_name pcf add access_id   9 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}100000 port  [ss#2] permit
-config access_profile profile_name pcf add access_id  13 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}180000 port  [ss#3] permit
-config access_profile profile_name pcf add access_id  17 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}200000 port  [ss#4] permit
-config access_profile profile_name pcf add access_id  21 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}280000 port  [ss#5] permit
-config access_profile profile_name pcf add access_id  25 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}300000 port  [ss#6] permit
-config access_profile profile_name pcf add access_id  29 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}380000 port  [ss#7] permit
-config access_profile profile_name pcf add access_id  33 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}400000 port  [ss#8] permit
-config access_profile profile_name pcf add access_id  37 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}480000 port  [ss#9] permit
-config access_profile profile_name pcf add access_id  41 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}500000 port [ss#10] permit
-config access_profile profile_name pcf add access_id  45 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}580000 port [ss#11] permit
-config access_profile profile_name pcf add access_id  49 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}600000 port [ss#12] permit
-config access_profile profile_name pcf add access_id  53 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}680000 port [ss#13] permit
-config access_profile profile_name pcf add access_id  57 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}700000 port [ss#14] permit
-config access_profile profile_name pcf add access_id  61 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}780000 port [ss#15] permit
-config access_profile profile_name pcf add access_id  65 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}800000 port [ss#16] permit
-config access_profile profile_name pcf add access_id  69 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}880000 port [ss#17] permit
-config access_profile profile_name pcf add access_id  73 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}900000 port [ss#18] permit
-config access_profile profile_name pcf add access_id  77 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}980000 port [ss#19] permit
-config access_profile profile_name pcf add access_id  81 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}A00000 port [ss#20] permit
-config access_profile profile_name pcf add access_id  85 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}A80000 port [ss#21] permit
-config access_profile profile_name pcf add access_id  89 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}B00000 port [ss#22] permit
-config access_profile profile_name pcf add access_id  93 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}B80000 port [ss#23] permit
-config access_profile profile_name pcf add access_id  97 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}C00000 port [ss#24] permit
-config access_profile profile_name pcf add access_id 101 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}C80000 port [ss#25] permit
-config access_profile profile_name pcf add access_id 105 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3oct#custom}D00000 port [ss#26] permit
-#permit ARP with correct 4th octet (between port_N*8 and port_N*8+7) and odd 3rd octet
-config access_profile profile_name pcf add access_id   6 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}080000 port  [ss#1] permit
-config access_profile profile_name pcf add access_id  10 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}100000 port  [ss#2] permit
-config access_profile profile_name pcf add access_id  14 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}180000 port  [ss#3] permit
-config access_profile profile_name pcf add access_id  18 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}200000 port  [ss#4] permit
-config access_profile profile_name pcf add access_id  22 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}280000 port  [ss#5] permit
-config access_profile profile_name pcf add access_id  26 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}300000 port  [ss#6] permit
-config access_profile profile_name pcf add access_id  30 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}380000 port  [ss#7] permit
-config access_profile profile_name pcf add access_id  34 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}400000 port  [ss#8] permit
-config access_profile profile_name pcf add access_id  38 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}480000 port  [ss#9] permit
-config access_profile profile_name pcf add access_id  42 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}500000 port [ss#10] permit
-config access_profile profile_name pcf add access_id  46 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}580000 port [ss#11] permit
-config access_profile profile_name pcf add access_id  50 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}600000 port [ss#12] permit
-config access_profile profile_name pcf add access_id  54 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}680000 port [ss#13] permit
-config access_profile profile_name pcf add access_id  58 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}700000 port [ss#14] permit
-config access_profile profile_name pcf add access_id  62 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}780000 port [ss#15] permit
-config access_profile profile_name pcf add access_id  66 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}800000 port [ss#16] permit
-config access_profile profile_name pcf add access_id  70 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}880000 port [ss#17] permit
-config access_profile profile_name pcf add access_id  74 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}900000 port [ss#18] permit
-config access_profile profile_name pcf add access_id  78 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}980000 port [ss#19] permit
-config access_profile profile_name pcf add access_id  82 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}A00000 port [ss#20] permit
-config access_profile profile_name pcf add access_id  86 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}A80000 port [ss#21] permit
-config access_profile profile_name pcf add access_id  90 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}B00000 port [ss#22] permit
-config access_profile profile_name pcf add access_id  94 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}B80000 port [ss#23] permit
-config access_profile profile_name pcf add access_id  98 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}C00000 port [ss#24] permit
-config access_profile profile_name pcf add access_id 102 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}C80000 port [ss#25] permit
-config access_profile profile_name pcf add access_id 106 packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{fn_3op1#custom}D00000 port [ss#26] permit
-#deny IP
-config access_profile profile_name pcf add access_id 254 packet_content offset_chunk_1 0x0800 port [ss] deny
-#deny ARP
-config access_profile profile_name pcf add access_id 255 packet_content offset_chunk_1 0x0806 port [ss] deny
+{% include 'dlink_pcf_profile' %}
+{# deny IP #}
+config access_profile profile_name pcf add access_id 254 packet_content offset_chunk_1 0x0800 port {{ p_stats.ss.range }} deny
+{# deny ARP #}
+config access_profile profile_name pcf add access_id 255 packet_content offset_chunk_1 0x0806 port {{ p_stats.ss.range }} deny
+{% endblock %}
 
-
-:::*cpu_acl*:::
+{% block cpu_acl %}
 # CPU ACL
-
 delete cpu access_profile all
 
 enable cpu_interface_filtering
@@ -156,103 +67,96 @@ config cpu access_profile profile_id 1 add access_id 1 ip destination_ip 224.0.0
 create cpu access_profile profile_id 2 ip destination_ip_mask 255.255.248.0
 config cpu access_profile profile_id 2 add access_id 1 ip destination_ip 239.1.8.0 port all permit
 
-#deny multicast-query for subscribers
+{# deny multicast-query for subscribers #}
 create cpu access_profile profile_id 3 ip destination_ip_mask 240.0.0.0
-config cpu access_profile profile_id 3 add access_id 1 ip destination_ip 224.0.0.0 port [ss] deny
+config cpu access_profile profile_id 3 add access_id 1 ip destination_ip 224.0.0.0 port {{ p_stats.ss.range }} deny
+{% endblock %}
 
-
-:::*accounts*:::
+{% block accounts %}
 # ACCOUNT LIST
-
 enable password encryption
 create account admin admin
 *@&JwxHFtYqqKr1J0WJP6Ee2mYVUKSYFKTH
 *@&JwxHFtYqqKr1J0WJP6Ee2mYVUKSYFKTH
+{% endblock %}
 
-
-:::*stp_lbd*:::
+{% block stp_lbd %}
 # LOOP DETECT & STP
-
 disable stp
 config stp version rstp
-config stp ports [mags] state disable restricted_tcn true fbpdu enable
-config stp ports   [ss] state disable restricted_tcn true restricted_role true edge true
-config stp ports   [vp] state disable restricted_tcn true restricted_role true edge true
-config stp ports   [eq] state disable restricted_tcn true restricted_role true edge true
-config loopdetect ports [mags] state disabled
-config loopdetect ports   [ss] state  enabled
-config loopdetect ports   [vp] state  enabled
-config loopdetect ports   [eq] state  enabled
+config stp ports {{ p_stats.mags.range }} state disable restricted_tcn true fbpdu enable
+config stp ports {{ p_stats.ss.range }} state disable restricted_tcn true restricted_role true edge true
+config stp ports {{ p_stats.vp.range }} state disable restricted_tcn true restricted_role true edge true
+config stp ports {{ p_stats.eq.range }} state disable restricted_tcn true restricted_role true edge true
+config loopdetect ports {{ p_stats.mags.range }} state disabled
+config loopdetect ports {{ p_stats.ss.range }} state enabled
+config loopdetect ports {{ p_stats.vp.range }} state enabled
+config loopdetect ports {{ p_stats.eq.range }} state enabled
 config loopdetect recover_timer 300
 enable loopdetect
+{% endblock %}
 
-
-:::*snmp*:::
+{% block snmp %}
 # SNMPv3
-
 enable community_encryption
 create snmp community readonly view CommunityView read_only
 create snmp community write4power view CommunityView read_write
 delete snmp community public
 delete snmp community private
-config snmp system_name {$target} : {fn_tr_cst1#custom}. ({$datetime})
+config snmp system_name {{ target }} : {{ custom|fn_tr_cst1 }}. ({{ datetime }})
 config snmp system_contact 8-800-5500-800 (PowerNet)
-config snmp system_location {fn_tr_cst2#custom}
+config snmp system_location {{ custom|fn_tr_cst2 }}
 enable snmp
+{% endblock %}
 
-
-:::*sntp*:::
+{% block sntp %}
 # SNTP
-
 config time_zone operator + hour 4 min 0
 config dst disable
 config sntp primary 10.200.201.34
 enable sntp
+{% endblock %}
 
-
-:::*lldp*:::
+{% block lldp %}
 # LLDP
-
 config lldp forward_message enable
-config lldp ports  [all] notification   disable
-config lldp ports  [all] basic_tlvs all disable
-config lldp ports  [all] dot1_tlv_pvid  disable
-config lldp ports  [all] dot1_tlv_vlan_name vlan all disable
-config lldp ports [mags] notification   enable
-config lldp ports [mags] basic_tlvs all enable
-config lldp ports [mags] dot1_tlv_pvid  enable
-config lldp ports [mags] dot1_tlv_vlan_name vlan all enable
+config lldp ports {{ p_stats.all.range }} notification disable
+config lldp ports {{ p_stats.all.range }} basic_tlvs all disable
+config lldp ports {{ p_stats.all.range }} dot1_tlv_pvid disable
+config lldp ports {{ p_stats.all.range }} dot1_tlv_vlan_name vlan all disable
+config lldp ports {{ p_stats.mags.range }} notification enable
+config lldp ports {{ p_stats.mags.range }} basic_tlvs all enable
+config lldp ports {{ p_stats.mags.range }} dot1_tlv_pvid enable
+config lldp ports {{ p_stats.mags.range }} dot1_tlv_vlan_name vlan all enable
 enable lldp
+{% endblock %}
 
-
-:::*filtering*:::
+{% block filtering %}
 # MISC FILTERS
+config traffic_segmentation {{ p_stats.mags.range }} forward_list {{ p_stats.all.range }}
+config traffic_segmentation {{ p_stats.ss.range }} forward_list {{ p_stats.mags.range }}
+config traffic_segmentation {{ p_stats.vp.range }} forward_list {{ p_stats.mags.range }}
+config traffic_segmentation {{ p_stats.eq.range }} forward_list {{ p_stats.mags.range }}
 
-config traffic_segmentation [mags] forward_list [all]
-config traffic_segmentation   [ss] forward_list [mags]
-config traffic_segmentation   [vp] forward_list [mags]
-config traffic_segmentation   [eq] forward_list [mags]
-
-config traffic control [mags] broadcast disable multicast disable threshold 64 countdown 5 time_interval 30 action drop
-config traffic control   [ss] broadcast  enable multicast  enable threshold 64 countdown 5 time_interval 30 action drop
-config traffic control   [vp] broadcast disable multicast disable threshold 64 countdown 5 time_interval 30 action drop
-config traffic control   [eq] broadcast  enable multicast  enable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control {{ p_stats.mags.range }} broadcast disable multicast disable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control {{ p_stats.ss.range }} broadcast enable multicast enable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control {{ p_stats.vp.range }} broadcast disable multicast disable threshold 64 countdown 5 time_interval 30 action drop
+config traffic control {{ p_stats.eq.range }} broadcast enable multicast enable threshold 64 countdown 5 time_interval 30 action drop
 
 config dos_prevention dos_type all state disable
 
-config filter dhcp_server ports [mags] state disable
-config filter dhcp_server ports   [ss] state  enable
-config filter dhcp_server ports   [vp] state disable
-config filter dhcp_server ports   [eq] state  enable
+config filter dhcp_server ports {{ p_stats.mags.range }} state disable
+config filter dhcp_server ports {{ p_stats.ss.range }} state enable
+config filter dhcp_server ports {{ p_stats.vp.range }} state disable
+config filter dhcp_server ports {{ p_stats.eq.range }} state enable
 config filter dhcp_server trap_log enable
 
-config cpu_filter l3_control_pkt [all] all state disable
-config cpu_filter l3_control_pkt  [ss] all state  enable
+config cpu_filter l3_control_pkt {{ p_stats.all.range }} all state disable
+config cpu_filter l3_control_pkt {{ p_stats.ss.range }} all state enable
+{% endblock %}
 
-
-:::*trusted_hosts*:::
+{% block trusted_hosts %}
 # TRUSTED HOSTS
-
 delete trusted_host all
 create trusted_host network 10.0.0.0/8
 create trusted_host network 10.90.90.0/24
@@ -261,35 +165,32 @@ create trusted_host network 172.17.0.0/16
 create trusted_host network 10.137.128.0/21
 create trusted_host network 10.200.200.0/23
 delete trusted_host network 10.0.0.0/8
+{% endblock %}
 
-
-:::*ipm*:::
+{% block ipm %}
 # IPM
-
 disable address_binding dhcp_snoop
 disable address_binding trap_log
+{% endblock %}
 
-
-:::*dhcp_relay*:::
+{% block dhcp_relay %}
 # DHCP_RELAY
-
 config dhcp_relay hops 4 time 0
 config dhcp_relay option_82 state enable
 config dhcp_relay option_82 check disable
 config dhcp_relay option_82 policy keep
 config dhcp_relay add ipif System 10.200.201.34
 config dhcp_relay add ipif System 10.200.201.134
-config dhcp_relay option_82 remote_id user_define {$target}
-config dhcp_relay ports [mags] state disable
-config dhcp_relay ports   [ss] state  enable
-config dhcp_relay ports   [vp] state disable
-config dhcp_relay ports   [eq] state enable
+config dhcp_relay option_82 remote_id user_define {{ target }}
+config dhcp_relay ports {{ p_stats.mags.range }} state disable
+config dhcp_relay ports {{ p_stats.ss.range }} state enable
+config dhcp_relay ports {{ p_stats.vp.range }} state disable
+config dhcp_relay ports {{ p_stats.eq.range }} state enable
 enable dhcp_relay
+{% endblock %}
 
-
-:::*igmp_snooping*:::
+{% block igmp_snooping %}
 # IGMP
-
 enable igmp_snooping
 enable igmp_snooping multicast_vlan
 delete igmp_snooping multicast_vlan multicast-vlan
@@ -303,31 +204,29 @@ config igmp_snooping vlan_name mvr fast_leave disable
 config igmp_snooping querier vlan_name mvr robustness_variable 7
 config igmp_snooping data_driven_learning max_learned_entry 1
 config igmp_snooping data_driven_learning vlan_name mvr aged_out enable 
-config igmp_snooping multicast_vlan mvr add member_port [ss]
-config igmp_snooping multicast_vlan mvr add member_port [ns]
-config igmp_snooping multicast_vlan mvr add tag_member_port [mags]
-config igmp_snooping multicast_vlan mvr delete tag_member_port [up]
-config igmp_snooping multicast_vlan mvr add source_port [up]
-config igmp_snooping multicast_vlan mvr delete tag_member_port [pu]
-config igmp_snooping multicast_vlan mvr add source_port [pu]
+config igmp_snooping multicast_vlan mvr add member_port {{ p_stats.ss.range }}
+config igmp_snooping multicast_vlan mvr add member_port {{ p_stats.ns.range }}
+config igmp_snooping multicast_vlan mvr add tag_member_port {{ p_stats.mags.range }}
+config igmp_snooping multicast_vlan mvr delete tag_member_port {{ p_stats.up.range }}
+config igmp_snooping multicast_vlan mvr add source_port {{ p_stats.up.range }}
+config igmp_snooping multicast_vlan mvr delete tag_member_port {{ p_stats.pu.range }}
+config igmp_snooping multicast_vlan mvr add source_port {{ p_stats.pu.range }}
 config multicast vlan_filtering_mode all filter_unregistered_groups
+{% endblock %}
 
-
-:::*igmp_auth*:::
+{% block igmp_auth %}
 # IGMP Authentication
-
 config radius delete 1
 config radius delete 2
 config radius add 1 10.200.201.234 key rad0iptv default
 config radius add 2 10.200.201.134 key rad0iptv default
-config igmp access_authentication ports [all] state disable
-config igmp access_authentication ports  [ss] state disable
+config igmp access_authentication ports {{ p_stats.all.range }} state disable
+config igmp access_authentication ports {{ p_stats.ss.range }} state disable
 config radius 1 timeout 1 retransmit 1
+{% endblock %}
 
-
-:::*aaa*:::
+{% block aaa %}
 # AAA
-
 create authen server_host 10.200.201.34 protocol radius port 1812 key "rad0iptv" timeout 5 retransmit 2
 create authen server_host 10.200.201.134 protocol radius port 1812 key "rad0iptv" timeout 5 retransmit 2
 
@@ -344,30 +243,27 @@ config authen application http login method_list_name RadiusLogin
 config authen application http enable method_list_name RadiusEnable
 
 enable authen_policy
+{% endblock %}
 
-
-:::*multi_filter*:::
+{% block multi_filter %}
 # MULTI FILTER
-
-config limited_multicast_addr ports [all] delete profile_id 1
+config limited_multicast_addr ports {{ p_stats.all.range }} delete profile_id 1
 delete mcast_filter_profile profile_id 1
 
 create mcast_filter_profile profile_id 1 profile_name iptv
 config mcast_filter_profile profile_id 1 add 239.1.8.1-239.1.15.254
-config limited_multicast_addr ports [all] add profile_id 1 access permit
+config limited_multicast_addr ports {{ p_stats.all.range }} add profile_id 1 access permit
+{% endblock %}
 
-
-:::*cos*:::
+{% block cos %}
 # COS
-
 config scheduling_mechanism strict
-config dscp trust  [all] state disable
-config dscp trust [mags] state  enable
+config dscp trust {{ p_stats.all.range }} state disable
+config dscp trust {{ p_stats.mags.range }} state enable
+{% endblock %}
 
-
-:::*mon_log*:::
+{% block mon_log %}
 # MONITOR
-
 config temperature threshold high 50
 config temperature threshold low 3
 config temperature trap state enable
@@ -379,52 +275,26 @@ create syslog host 1 ipaddress 10.200.201.180 udp_port 7514 state enable severit
 create syslog host 2 ipaddress 10.200.201.137 state enable severity debug
 
 enable mac_notification
-config mac_notification ports [all] disable
-config mac_notification ports  [ss]  enable
-config mac_notification ports  [vp]  enable
+config mac_notification ports {{ p_stats.all.range }} disable
+config mac_notification ports {{ p_stats.ss.range }} enable
+config mac_notification ports {{ p_stats.vp.range }} enable
 delete snmp host 10.200.200.9
 create snmp host 10.200.201.180 v2c readonly
 
-config port_vlan [mags] pvid 50
+config port_vlan {{ p_stats.mags.range }} pvid 50
 
 config safeguard_engine utilization rising 90 falling 30 trap_log enable state enable
 
 config log_save_timing time_interval 240
 enable command logging
+{% endblock %}
 
+{% block p_desc %}
+    {% include 'dlink_ports_description' %}
+{% endblock %}
 
-:::*p_desc*:::
-# PORTS DESCRIPTION
-
-config ports  1 description "{fn_tr#{comment#1}}"
-config ports  2 description "{fn_tr#{comment#2}}"
-config ports  3 description "{fn_tr#{comment#3}}"
-config ports  4 description "{fn_tr#{comment#4}}"
-config ports  5 description "{fn_tr#{comment#5}}"
-config ports  6 description "{fn_tr#{comment#6}}"
-config ports  7 description "{fn_tr#{comment#7}}"
-config ports  8 description "{fn_tr#{comment#8}}"
-config ports  9 description "{fn_tr#{comment#9}}"
-config ports 10 description "{fn_tr#{comment#10}}"
-config ports 11 description "{fn_tr#{comment#11}}"
-config ports 12 description "{fn_tr#{comment#12}}"
-config ports 13 description "{fn_tr#{comment#13}}"
-config ports 14 description "{fn_tr#{comment#14}}"
-config ports 15 description "{fn_tr#{comment#15}}"
-config ports 16 description "{fn_tr#{comment#16}}"
-config ports 17 description "{fn_tr#{comment#17}}"
-config ports 18 description "{fn_tr#{comment#18}}"
-config ports 19 description "{fn_tr#{comment#19}}"
-config ports 20 description "{fn_tr#{comment#20}}"
-config ports 21 description "{fn_tr#{comment#21}}"
-config ports 22 description "{fn_tr#{comment#22}}"
-config ports 23 description "{fn_tr#{comment#23}}"
-config ports 24 description "{fn_tr#{comment#24}}"
-config ports 25 description "{fn_tr#{comment#25}}"
-config ports 26 description "{fn_tr#{comment#26}}"
-
-
-:::*bottom*:::
+{% block bottom %}
 #-------------------------------------------------------------------
 #             End of configuration file for DGS-3000-26TC
 #-------------------------------------------------------------------
+{% endblock %}

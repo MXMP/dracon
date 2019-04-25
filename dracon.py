@@ -1,25 +1,21 @@
 #!/usr/local/bin/python3
 
-import dfunc
 import hashlib
 import logging
-import re
 import socket
 import sys
 import time
+import inspect
 from logging.handlers import RotatingFileHandler
 from math import ceil
 
 import psycopg2
 import pymysql
+import jinja2
 
 from daemon import Daemon
-from dconfig import dev_types, ports_types, mags_list, cf_path, fw_path, fw_names, commands, helpinfo
-from dconfig import devices_query, ports_query
-from dconfig import interface_ip, port, cycle_int, sleep_def, sleep_int, log_file, log_size, log_backupcount
-from dconfig import mysql_addr, mysql_user, mysql_pass, mysql_base
-from dconfig import mysql_addr_w, mysql_user_w, mysql_pass_w, mysql_base_w, mysql_ctbl_w, mysql_ttbl_w
-from dconfig import postgresql_addr, postgresql_user, postgresql_pass, postgresql_base, use_postgresql
+from dconfig import *
+import dfunc
 
 # Настройка системы логирования сообщений
 log_handler = RotatingFileHandler(log_file, maxBytes=log_size, backupCount=log_backupcount)
@@ -28,6 +24,11 @@ log_handler.setFormatter(log_formatter)
 logger = logging.getLogger()
 logger.addHandler(log_handler)
 logger.setLevel(logging.DEBUG)
+
+
+class CustomUndefined(jinja2.StrictUndefined):
+    def __getattr__(self, item):
+        return f'#ERROR - {self._undefined_name}#'
 
 
 def text_to_bytes(string: str) -> bytes:
@@ -71,6 +72,7 @@ def md5size(src):
     return md5(data), len(data)
 
 
+# TODO: от этой функции нужно избавиться, она  избыточна
 def get_dttm():
     """
     Функция для получения даты и времени в двух форматах.
@@ -410,6 +412,36 @@ def tftp_prepdata(tftpdata, ip):
     return tftp_type, transfer, tftp_filename, tftp_block, target_ip, data_type, data_upl
 
 
+def get_range(ports_gr):
+    """
+    Функция получения диапазона портов.
+
+    :param ports_gr:
+    :return:
+    """
+
+    # Получаем список ключей из словаря. При этом удаляем дубликаты (list(set())) и сортируем список
+    _range = sorted(list(set(ports_gr.keys())))
+    # Получаем два временных списка с ключами. Ключи - это номера портов. Первй список будет преобразован
+    # в диапазон, а второй возвращен без преобразования
+    p_range = list(_range)
+    full_p_range = list(_range)
+    # Перебираем основной список, получая индекс элемента (i) и сам элемент (a)
+    for i, a in enumerate(_range):
+        # Обрабатываем все элементы кроме минимального и максимального
+        # Если слева и справа от текущего номера идут последовательно,
+        # заменяем текущий элемент (который означает номер порта) на '*'
+        if (a > min(_range)) & (a < max(_range)):
+            if (a == _range[i - 1] + 1) & (a == _range[i + 1] - 1):
+                p_range[i] = '*'
+    # Из списка получаем строку, где элементы разделены запятыми, а '*' и ',-' заменены на '-'
+    p_range = ','.join(str(n) for n in p_range).replace('*,', '-').replace(',-', '-')
+    # Удаляем двойные символы '-', заменяя их на одинарные
+    while p_range.find('--') != -1:
+        p_range = p_range.replace('--', '-')
+    return {'range': p_range, 'list': full_p_range}
+
+
 def p_stat(ports):
     """
     Функция, возвращающая список с типами портов и их диапазоном.
@@ -418,66 +450,40 @@ def p_stat(ports):
     :return:
     """
 
-    def get_range(ports_gr):
-        """
-        Функция получения диапазона портов.
-
-        :param ports_gr:
-        :return:
-        """
-        # Получаем список ключей из словаря. При этом удаляем дубликаты (list(set())) и сортируем список
-        _range = sorted(list(set(ports_gr.keys())))
-        # Получаем два временных списка с ключами. Ключи - это номера портов. Первй список будет преобразован
-        # в диапазон, а второй возвращен без преобразования
-        p_range = list(_range)
-        full_p_range = list(_range)
-        # Перебираем основной список, получая индекс элемента (i) и сам элемент (a)
-        for i, a in enumerate(_range):
-            # Обрабатываем все элементы кроме минимального и максимального
-            # Если слева и справа от текущего номера идут последовательно,
-            # заменяем текущий элемент (который означает номер порта) на '*'
-            if (a > min(_range)) & (a < max(_range)):
-                if (a == _range[i - 1] + 1) & (a == _range[i + 1] - 1):
-                    p_range[i] = '*'
-        # Из списка получаем строку, где элементы разделены запятыми, а '*' и ',-' заменены на '-'
-        p_range = ','.join(str(n) for n in p_range).replace('*,', '-').replace(',-', '-')
-        # Удаляем двойные символы '-', заменяя их на одинарные
-        while p_range.find('--') != -1:
-            p_range = p_range.replace('--', '-')
-        return {'range': p_range, 'list': full_p_range}
-
     # 1 - абонентский порт, 2 - магистральный, 3 - сломанный, 4 - VIP-клиент, 5 - вход
     # 6 - нестандартный, 7 - оборудование, 8 - вход (патчкорд), 9 - магистраль (патчкорд)
     # Создаем результирующий словарь
     res_dict = {}
     # Проходим по всему списку типов (перебираем ключи)
-    for pt in list(ports_types.keys()):
+    for port_type_index in list(ports_types.keys()):
         # Получаем временный словарь из переданного функции
         ports_tmp = dict(ports)
-        # Перебираем основной словарь. 'p' - номер порта. Задача: оставить порты только нужного типа
-        for p in ports:
+        # Перебираем основной словарь. Задача: оставить порты только нужного типа
+        for port_num in ports:
             # Если тип порта для основного словаря не равен определенному типу, удаляем соответствующий элемент
             # во временном словаре
-            if ports[p]['ptype'] != pt:
-                del ports_tmp[p]
-        res_dict[ports_types[pt]] = get_range(ports_tmp)
+            if ports[port_num]['ptype'] != port_type_index:
+                del ports_tmp[port_num]
+        if len(ports_tmp):
+            res_dict[ports_types[port_type_index]] = get_range(ports_tmp)
+
     ports_tmp = dict(ports)
     # Получаем диапазон и список вообще всех портов
     res_dict['all'] = get_range(ports_tmp)
     # Во временном списке оставляем порты с типом 2, 5, 8 и 9
-    for p in ports:
-        if int(ports[p]['ptype']) not in mags_list:
-            del ports_tmp[p]
+    for port_num in ports:
+        if int(ports[port_num]['ptype']) not in mags_list:
+            del ports_tmp[port_num]
     # Получаем диапазон и список магистральных портов
-    res_dict['mags'] = get_range(ports_tmp)
+    if len(ports_tmp):
+        res_dict['mags'] = get_range(ports_tmp)
     return res_dict
 
 
-def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
+def get_data(target, fname, sw, custom, ports, transfer, data_type):
     """
     Функция подготовки данных.
 
-    :param ip:
     :param target:
     :param fname:
     :param sw:
@@ -518,98 +524,32 @@ def get_data(ip, target, fname, sw, custom, ports, transfer, data_type):
     if (data_type == 'config') & (target is not None):
         # Если имя файла (которое является и командой) присутствует в наборе списков команд:
         if fname in list(commands.keys()):
+            # создаем окружение для Jinja2, загружаем фильтры и шаблон для коммутатора
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(cf_path))
+            env.lstrip_blocks = True
+            env.undefined = CustomUndefined
+            for filter_name, filter_function in inspect.getmembers(dfunc, inspect.isfunction):
+                env.filters[filter_name] = filter_function
             try:
-                cf_file = open(cf_path + sw, 'rt')
-                cf_data = cf_file.read().split(':::')
-                cf_file.close()
-                cf_data = dict(cf_data[i:i + 2] for i in range(1, len(cf_data), 2))
-            except:
-                cf_data = ''
-                logger.info("ERROR: Can't open file '%s%s' or this file is incorrect!", cf_path, sw)
+                template = env.get_template(sw)
+            except (jinja2.TemplateSyntaxError, jinja2.TemplateNotFound) as e:
+                logger.error(e)
+                return '', ''
 
-            # Получаем диапазоны и списки портов в зависимости от их статуса
-            p_stats = p_stat(ports)
-            # Шаблон для поиска конструкций вида [ss#1]
-            reg_x = re.compile(r"(\[(?P<k>[a-zA-Z]+)\#(?P<v>\d+)\])")
-            # Шаблон для поиска конструкций вида [ss]
-            reg_nx = re.compile(r"(\[(?P<val>\S+)\])", re.IGNORECASE | re.DOTALL)
-            # Шаблон для поиска конструкций вида {function_name#param}
-            reg_fn = re.compile(r"(\{([a-zA-Z_0-9]+)\#([^\t\n\r\f\v\{\}]*)\})")
+            # формируем контекст (то что передается в шаблон)
+            context = template.new_context({'p_stats': p_stat(ports),
+                                            'custom': custom,
+                                            'target': target,
+                                            'datetime': get_dttm()[1],
+                                            'comments': {port: ports[port]['comment'] for port in ports}})
 
             # Перебираем все команды внутри списка для данной команды
             for cmd in commands[fname]:
-                if cmd in cf_data:
-                    # Находим для команды (имени файла) соответствующий блок, разбираем его на строки
-                    # и перебираем их все
-                    for cf_line in cf_data[cmd].split("\n"):
-                        # Получаем копию текущей строки, которую модернизируем при наличии в ней шаблонов
-                        new_cf_line = cf_line
-
-                        # Заменяем зарезервированные слова на значения соответствующих переменных
-                        new_cf_line = new_cf_line.replace('{$target}', target)
-                        new_cf_line = new_cf_line.replace('{$datetime}', get_dttm()[1])
-
-                        # Здесь выражение вида "config ports [ss#1] state enable" разбирается
-                        # на список кортежей вида [('[ss#1]', 'ss', '1')]
-                        # Индекс [0] указывает на исходное значение в строке, [1] - на имя списка и
-                        # [2] - на _значение_ (не индекс!) внутри списка
-                        # Если замена или вызов функции были неудачными, то строка
-                        # "комментируется" - добавляется символ '#'
-                        for p_list in reg_x.findall(new_cf_line):
-                            p_check = p_list[0]
-                            try:
-                                # Если искомое значение присутствует внутри найденного списка, запоминаем это значение
-                                if int(p_list[2]) in p_stats[p_list[1]]['list']:
-                                    p_check = p_list[2]
-                            except:
-                                new_cf_line = "#" + new_cf_line
-                            # Заменяем шаблон на диапазон портов (если он был распознан) или
-                            # на сам шаблон (то есть ничего не поменяется)
-                            new_cf_line = new_cf_line.replace(p_list[0], p_check)
-
-                        # Разбираем выражение вида "config ports [ss] state enable"
-                        # на список кортежей [('[ss]','ss'),..]. В большинстве случаев в списке будет один элемент.
-                        for p_range in reg_nx.findall(new_cf_line):
-                            p_check = p_range[0]
-                            try:
-                                # Если у диапазона ненулевая длина, запоминаем его значение, иначе "комментируем строку"
-                                if len(p_stats[p_range[1]]['range']) > 0:
-                                    p_check = p_stats[p_range[1]]['range']
-                                else:
-                                    new_cf_line = "#" + new_cf_line
-                            except:
-                                new_cf_line = "#" + new_cf_line
-                            # Заменяем шаблон на диапазон портов (если он был распознан) или на
-                            # сам шаблон (то есть ничего не поменяется)
-                            new_cf_line = new_cf_line.replace(p_range[0], p_check)
-
-                        # Разбираем строку для поиска пользовательских функций по шаблону {fn#1}.
-                        # Сначала выполняем проверку на 'comment'
-                        for fn_list in reg_fn.findall(new_cf_line):
-                            if fn_list[1][0:8] == 'comment':
-                                try:
-                                    new_cf_line = new_cf_line.replace(fn_list[0], ports[int(fn_list[2])]['comment'])
-                                except:
-                                    new_cf_line = "#" + new_cf_line
-
-                        # Аналогично проверяем все остальные шаблоны {fn#1}, уже для поиска функций
-                        for fn_list in reg_fn.findall(new_cf_line):
-                            # Проверяем, начинается ли пользовательская функция на 'fn_'
-                            if fn_list[1][0:3] == 'fn_':
-                                # Определяем параметр пользовательской функции. Если используются зарезервированные
-                                # слова, работаем с ними, иначе получаем параметр из запроса.
-                                fn_param = fn_list[2]
-                                if fn_list[2] == 'custom':
-                                    fn_param = custom
-                                try:
-                                    # Пробуем применить пользовательскую функцию. Имя функции получаем из шаблона.
-                                    # Сами функции хранятся в модуле dfunc.
-                                    new_cf_line = new_cf_line.replace(fn_list[0], getattr(dfunc, fn_list[1])(fn_param))
-                                except Exception as err:
-                                    logger.debug(f'Error while applying user function "{fn_list[1]}": {err}')
-                                    new_cf_line = "#" + new_cf_line
-
-                        data += new_cf_line + "\n"
+                if cmd in template.blocks:
+                    for microblock in template.blocks[cmd](context):
+                        data += microblock
+                else:
+                    logger.error(f"Can't find <{cmd}> block in {template}")
 
     # Получаем контрольную сумму для данных
     m5d = md5(data)
@@ -672,7 +612,7 @@ def main():
         tftp.bind((interface_ip, port))
     # При возникновении ошибки делаем запись в логе и завершаем работу
     except socket.error as err:
-        logger.info("CRITICAL: Socket Error: %s Exiting...", err.args[1])
+        logger.error("CRITICAL: Socket Error: %s Exiting...", err.args[1])
         sys.exit(2)
     # При отсутствии ошибки переводим сокет в режим non blocking
     else:
@@ -759,12 +699,12 @@ def main():
                 rem_dev, rem_cust = get_sw_info(target_ip, devices)
                 # Если запрошена конфигурация, получаем данные в виде блоков и их MD5-сумму (от целой части без блоков)
                 if data_type == 'config':
-                    cfg_tmp, md5_tmp = get_data(rem_ip, target_ip, tftp_filename, rem_dev, rem_cust, ports[target_ip],
+                    cfg_tmp, md5_tmp = get_data(target_ip, tftp_filename, rem_dev, rem_cust, ports[target_ip],
                                                 transfer, data_type)
                 # Если запрошено ПО или backup конфигурации, то проделываем то же самое,
                 # но вместо портов передаем пустой список
                 if (data_type == 'firmware') or (data_type == 'backup'):
-                    cfg_tmp, md5_tmp = get_data(rem_ip, target_ip, tftp_filename, rem_dev, rem_cust, [], transfer,
+                    cfg_tmp, md5_tmp = get_data(target_ip, tftp_filename, rem_dev, rem_cust, [], transfer,
                                                 data_type)
 
                 # Если для удаленного хоста данные уже определены, обновляем их. В противном случае - добавляем
@@ -775,6 +715,7 @@ def main():
                     cfg_fw[rem_ip] = {
                         rem_port: {'data': cfg_tmp, 'type': data_type, 'md5': md5_tmp, 'file': tftp_filename,
                                    'target': target_ip, 'switch': rem_dev}}
+
             # На выходе получается словарь словарей вида
             # {
             #   IP :
@@ -814,7 +755,7 @@ def main():
                     tftp.sendto(send_data, (rem_ip, rem_port))
                 # Обрабатываем возможную ошибку сокета, делаем запись в логе и завершаем работу
                 except socket.error as err:
-                    logger.info("CRITICAL: Socket Error (DATA): %s. Exiting...", err.args[1])
+                    logger.error("CRITICAL: Socket Error (DATA): %s. Exiting...", err.args[1])
                     sys.exit(2)
                 else:
                     # Если тип 'RRQ', т.е. передача только начинается
@@ -938,8 +879,10 @@ def main():
                     else:
                         # Пробуем отправить подтверждение блока или начала передачи (ответ на WRQ, tftp_block равен 0)
                         try:
-                            tftp.sendto((chr(0) + chr(4) + (lambda x: chr(x // 256) + chr(x % 256))(int(tftp_block))).encode('utf-8'),
-                                        (rem_ip, rem_port))
+                            tftp.sendto(
+                                (chr(0) + chr(4) + (lambda x: chr(x // 256) + chr(x % 256))(int(tftp_block))).encode(
+                                    'utf-8'),
+                                (rem_ip, rem_port))
                         # Обрабатываем возможную ошибку сокета
                         except socket.error as err:
                             # При возникновении ошибки делаем запись в логе

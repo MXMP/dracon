@@ -1,0 +1,12 @@
+{# allow specific source network (10.XX.YY.port_N*8 0.0.1.7) for a customer#}
+{% for port_num in p_stats.ss.list -%}
+    config access_profile profile_name pcf add access_id {{ port_num * 4 }} packet_content offset_chunk_1 0x0800 offset_chunk_2 0x0A{{ custom|fn_2oct }}{{ custom|fn_3oct }}{{ port_num|dlink_offset_chunk_trailer }} port {{ port_num }} permit
+{% endfor %}
+{# permit ARP with correct 4th octet (between port_N*8 and port_N*8+7) and even 3rd octet #}
+{% for port_num in p_stats.ss.list -%}
+    config access_profile profile_name pcf add access_id {{ port_num * 4 + 1 }} packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{{ custom|fn_3oct }}{{ port_num|dlink_offset_chunk_trailer }}0000 port {{ port_num }} permit
+{% endfor %}
+{# permit ARP with correct 4th octet (between port_N*8 and port_N*8+7) and odd 3rd octet #}
+{% for port_num in p_stats.ss.list -%}
+    config access_profile profile_name pcf add access_id {{ port_num * 4 + 2 }} packet_content offset_chunk_1 0x0806 offset_chunk_3 0x{{ custom|fn_3op1 }}{{ port_num|dlink_offset_chunk_trailer }}0000 port {{ port_num }} permit
+{% endfor %}

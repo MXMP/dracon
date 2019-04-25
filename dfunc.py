@@ -1,3 +1,6 @@
+from ipaddress import ip_network, AddressValueError, NetmaskValueError
+
+
 def translit(srcstr):
     try:
         new_str = str(srcstr, 'utf-8')
@@ -78,3 +81,83 @@ def fn_split_before(src):
 # Пользовательская функция: получение части строки после разделителя '|' (без транслитерации)
 def fn_split_after(src):
     return src.split('|')[1]
+
+
+def get_vlan_id(custom: str) -> int:
+    """
+    Возвращает VLANID серой сети из поля `custom`.
+
+    :param str custom: поле custom
+    :rtype: int
+    :return: VLANID серой сети
+    """
+
+    return int(custom.split('|')[2])
+
+
+def get_gateway_ip(custom: str) -> str:
+    """
+    Возвращает ip-адрес шлюза (первый ip) исходя из сети управления в поле `custom`.
+
+    :param str custom: поле custom
+    :rtype: str
+    :return: ip-адрес шлюза
+    """
+
+    management_net = ip_network(custom.split('|')[3])
+    return str(list(management_net.hosts())[0])
+
+
+def get_mvlan_id(custom: str) -> int:
+    """
+    Выдергивает из поля custom VLANID сети управления.
+
+    :param str custom: поле custom
+    :rtype: int
+    :return: VLANID сети управления
+    """
+    mvlan_field = custom.split('|')[4]
+    return int(mvlan_field.replace('mvlanid:', '', 1))
+
+
+def dlink_offset_chunk_trailer(port_num: int) -> str:
+    """
+    Возвращает "хвост" offset_chunk для определенного порта.
+
+    :param int port_num: номер порта
+    :rtype: str
+    :return: хвост offset_chunk
+    """
+
+    trailers = {1: '08', 2: '10', 3: '18', 4: '20', 5: '28', 6: '30', 7: '38', 8: '40', 9: '48', 10: '50', 11: '58',
+                12: '60', 13: '68', 14: '70', 15: '78', 16: '80', 17: '88', 18: '90', 19: '98', 20: 'A0', 21: 'A8',
+                22: 'B0', 23: 'B8', 24: 'C0', 25: 'C8', 26: 'D0', 27: 'D8', 28: 'E8'}
+
+    return trailers[port_num]
+
+
+def fn_to_snr_port_range(port_range: str) -> str:
+    """
+    Меняет разделитель в диапазоне портов с ',' на ';'. Это нужно для коммутаторов SNR, т.к. они не понимают разделитель
+    в виде запятой.
+
+    :param str port_range: диапазон портов
+    :rtype: str
+    :return: диапазон портов с разделителем ';'
+    """
+
+    return port_range.replace(',', ';')
+
+
+def fn_first_3_octets(custom: str) -> str:
+    """
+    Возвращает первые три октета от ip-адреса из поля `custom`.
+
+    :param str custom: ip-адрес
+    :rtype: str
+    :return: строка с первыми тремя октетами
+    """
+
+    net = ip_network(fn_split_before(custom))
+    net = str(net)
+    return net[:net.rindex('.')]
