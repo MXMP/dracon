@@ -45,9 +45,9 @@ config access_profile profile_name security add access_id auto_assign ip destina
 create access_profile profile_id 4 profile_name pcf packet_content_mask offset_chunk_1 3 0xFFFF offset_chunk_2 7 0xFFFFFEF8 offset_chunk_3 8 0xFFF80000
 {% include 'dlink_pcf_profile' %}
 {# deny IP  #}
-config access_profile profile_name pcf add access_id 254 packet_content offset_chunk_1 0x0800 port {{ p_stats.ss.range }} deny
+config access_profile profile_name pcf add access_id 127 packet_content offset_chunk_1 0x0800 port {{ p_stats.ss.range }} deny
 {# deny ARP  #}
-config access_profile profile_name pcf add access_id 255 packet_content offset_chunk_1 0x0806 port {{ p_stats.ss.range }} deny
+config access_profile profile_name pcf add access_id 128 packet_content offset_chunk_1 0x0806 port {{ p_stats.ss.range }} deny
 
 config cpu_filter l3_control_pkt {{ p_stats.vp.range }} all state disable
 {% endblock %}
