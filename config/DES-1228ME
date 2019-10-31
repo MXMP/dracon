@@ -50,11 +50,6 @@ config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port {{ 
 {# deny multicast from subscribers. (!) this rule applies only to untagged traffic #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0xf000 profile_id 8
 config access_profile profile_id 8 add access_id auto_assign packet_content offset 12 0x8000000 offset 28 0xe000 port {{ p_stats.ss.range }} deny
-
-{# deny ARP (optional), IP (optional) and broadcast. permit IPv6. deny unknown ethernet. (for subscribers) #}
-create access_profile ethernet source_mac 00-00-00-00-00-00 destination_mac FF-FF-FF-FF-FF-FF ethernet_type profile_id 9
-config access_profile profile_id 9 add access_id auto_assign ethernet destination_mac FF-FF-FF-FF-FF-FF port {{ p_stats.ss.range }} deny
-config access_profile profile_id 9 add access_id auto_assign ethernet ethernet_type 0x806 port {{ p_stats.ss.range }} deny
 {% endblock %}
 
 {% block cpu_acl %}
