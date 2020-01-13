@@ -1,6 +1,6 @@
 #coding=UTF8
 # IP-адрес интерфейса, на котором будет работать демон
-interface_ip = ""
+interface_ip = "10.200.201.180"
 # UDP-порт для TFTP-сервера
 port = 69
 # Время в секундах, через которое надо обновлять список портов и устройств
@@ -17,10 +17,10 @@ log_size = 1048576
 log_backupcount = 4
 
 # Настройки для MySQL-сервера, откуда будут забираться данные
-mysql_addr = "mysql.localhost"
-mysql_user = "user"
-mysql_pass = "password"
-mysql_base = "devices"
+mysql_addr = "mysql.powernet"
+mysql_user = "devices_logger"
+mysql_pass = "devices_logger"
+mysql_base = "problem"
 
 # Настройки для PostgreSQL-сервера, откуда будут забираться данные. Используется как альтернатива MySQL
 postgresql_addr = "postgresql.localhost"
@@ -30,19 +30,15 @@ postgresql_base = "devices"
 use_postgresql = False
 
 # Запрос к базе данных для получения списка устройств. Поля: ip(str), type(int), custom(str)
-devices_query = """
-SELECT '10.90.90.95' AS ip, 24 AS type, '192.168.0.0/24' AS custom;
-"""
+devices_query = "SELECT * FROM view_dracon_devices"
 
 # Запрос к базе данных для получения сведений о портах коммутатора. Поля: ip(str), port(int), ptype(int), comment(str)
-ports_query = """
-SELECT '10.90.90.95' AS ip, 1 AS port, 1 AS ptype, 'user12345' AS comment;
-"""
+ports_query = "SELECT * FROM view_dracon_ports"
 
 # Настройки для MySQL-сервера, где будет храниться конфигурация и информация о транзакциях
 mysql_addr_w = "localhost"
 mysql_user_w = "dracon"
-mysql_pass_w = "draconpass"
+mysql_pass_w = "VtQ=<|L3o%_{"
 mysql_base_w = "dracon"
 mysql_ctbl_w = "configs"
 mysql_ttbl_w = "transactions"
@@ -59,6 +55,13 @@ dev_types = {
     215: 'DGS-3000-24TC',  # DES-3000-24TC
     252: 'DGS-3000-26TC',  # DES-3000-24TC
     253: 'DGS-1510-28LME',  # DGS-1510-28L/ME
+    260: 'DGS-3000-28L',  # DGS-3000-28L
+    266: 'S2985G-24T',
+    268: 'DGS-1510-20LME',  # DGS-1510-20L/ME
+    269: 'DGS-1210-28ME',  # DGS-1210-28/ME
+    283: 'DES-1228ME', # DES-1228/ME rev. A1/A2
+    291: 'DES-3200-26',  # DES-3200-26/A1
+    296: 'DGS-3000-10TC',  # DES-3000-10TC
 }
 
 # Словарь с кодами портов и их сокращенными обозначениями
@@ -78,43 +81,48 @@ cf_path = "/usr/local/etc/dracon/config/"
 fw_path = "/usr/local/etc/dracon/fw/"
 
 # Соответствие названий устройств именам файлов с программным обеспечением
-fw_names = {
-    'DES-3200-28': 'DES-3200R_1.85.B008.had',
-    'DES-3200-28_C1': 'DES3200R_4.39.B008.had',
-    'DES-3200-18': 'DES-3200R_1.85.B008.had',
-    'DES-3200-18_C1': 'DES3200R_4.39.B008.had',
-    'DES-3028': 'DES_3028_52_V2.94-B07.had',
-    'DGS-3000-24TC': 'DGS3000_Run_1_14_B008.had',
-    'DGS-3000-26TC': 'DGS3000_Run_1_14_B008.had',
-    'DGS-1510-28LME': 'DGS-1510_ME_Run_1_10_B016.had',
-}
+fw_names = { 
+    'DES-3200-28': 'DES-3200R_1.88.B010.had',
+    'DES-3200-26': 'DES-3200R_1.88.B010.had',
+    'DES-3200-28_C1': 'DES3200R_4.48.B002.had',
+    'DES-3200-18': 'DES-3200R_1.88.B010.had',
+    'DES-3200-18_C1': 'DES3200R_4.48.B002.had', 
+    'DES-3028': 'DES_3028_52_V2.94-B16.had',
+    'DES-3026': 'DES3000_V4.30.B28.had',
+    'DGS-3000-24TC': 'DGS3000_Run_1_16_B004.had',
+    'DGS-3000-26TC': 'DGS3000_Run_1_16_B004.had',
+    'DGS-1510-28LME': 'DGS-1510_ME_Run_1_30_B013.had',
+    'DGS-1510-20LME': 'DGS-1510_ME_Run_1_30_B013.had',
+    'DGS-3000-28L': 'DGS-3000_Run_4_02_B009.had',
+    'DES-1228ME': 'DES1228ME_1.60.B06.had',
+    } 
 
 # Доступные команды (имена файлов) и соответствующие им шаблоны с набором команд
 commands = {
-    'acl': ['*header*', '*acl*'],
-    'cpu_acl': ['*header*', '*cpu_acl*'],
-    'accounts': ['*header*', '*accounts*'],
-    'stp_lbd': ['*header*', '*stp_lbd*'],
-    'snmp': ['*header*', '*snmp*'],
-    'sntp': ['*header*', '*sntp*'],
-    'lldp': ['*header*', '*lldp*'],
-    'filtering': ['*header*', '*filtering*'],
-    'trusted_hosts': ['*header*', '*trusted_hosts*'],
-    'ipm': ['*header*', '*ipm*'],
-    'dhcp_relay': ['*header*', '*dhcp_relay*'],
-    'igmp_snooping': ['*header*', '*igmp_snooping*'],
-    'igmp_auth': ['*header*', '*igmp_auth*'],
-    'aaa': ['*header*', '*aaa*'],
-    'multi_filter': ['*header*', '*multi_filter*'],
-    'cos': ['*header*', '*cos*'],
-    'mon_log': ['*header*', '*mon_log*'],
-    'pdesc': ['*header*', '*p_desc*'],
-    'config': ['*header*', '*acl*', '*cpu_acl*', '*accounts*', '*stp_lbd*', '*snmp*', '*sntp*', '*lldp*', '*filtering*',
-               '*trusted_hosts*', '*ipm*', '*dhcp_relay*', '*igmp_snooping*', '*igmp_auth*', '*aaa*', '*multi_filter*',
-               '*cos*', '*mon_log*', '*p_desc*', '*bottom*'],
-    'safe_config': ['*header*', '*acl*', '*cpu_acl*', '*accounts*', '*stp_lbd*', '*snmp*', '*sntp*', '*lldp*',
-                    '*filtering*', '*trusted_hosts*', '*ipm*', '*dhcp_relay*', '*igmp_auth*', '*aaa*', '*multi_filter*',
-                    '*cos*', '*mon_log*', '*p_desc*', '*bottom*']
+    'acl': ['header', 'acl'],
+    'cpu_acl': ['header', 'cpu_acl'],
+    'accounts': ['header', 'accounts'],
+    'stp_lbd': ['header', 'stp_lbd'],
+    'snmp': ['header', 'snmp'],
+    'sntp': ['header', 'sntp'],
+    'lldp': ['header', 'lldp'],
+    'filtering': ['header', 'filtering'],
+    'trusted_hosts': ['header', 'trusted_hosts'],
+    'ipm': ['header', 'ipm'],
+    'dhcp_relay': ['header', 'dhcp_relay'],
+    'igmp_snooping': ['header', 'igmp_snooping'],
+    'igmp_auth': ['header', 'igmp_auth'],
+    'aaa': ['header', 'aaa'],
+    'multi_filter': ['header', 'multi_filter'],
+    'cos': ['header', 'cos'],
+    'mon_log': ['header', 'mon_log'],
+    'pdesc': ['header', 'p_desc'],
+    'config': ['header', 'acl', 'cpu_acl', 'accounts', 'stp_lbd', 'snmp', 'sntp', 'lldp', 'filtering',
+               'trusted_hosts', 'ipm', 'dhcp_relay', 'igmp_snooping', 'igmp_auth', 'aaa', 'multi_filter',
+               'cos', 'mon_log', 'p_desc', 'bottom'],
+    'safe_config': ['header', 'acl', 'cpu_acl', 'accounts', 'stp_lbd', 'snmp', 'sntp', 'lldp',
+                    'filtering', 'trusted_hosts', 'ipm', 'dhcp_relay', 'igmp_auth', 'aaa', 'multi_filter',
+                    'cos', 'mon_log', 'p_desc', 'bottom']
 }
 
 # Содержимое справки, получаемой по команде (имени файла) 'help'
