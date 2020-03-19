@@ -5,3 +5,4 @@ tests/
 *.pyc
 __pycache__/
 fw/
+.DS_Store

@@ -1,53 +1,93 @@
-{% block header %}Header{% endblock %}
+{% block header %}
+#-------------------------------------------------------------------
+#                       DES-3200-26 Configuration
+#
+#                       Firmware: Build 1.85.B008
+#        Copyright(C) 2010 D-Link Corporation. All rights reserved.
+#-------------------------------------------------------------------
+{% endblock %}
 
 {% block acl %}
 # ACL
-delete access_profile profile_name vlandscp
-delete access_profile profile_name security
-delete access_profile profile_name pcf
 
-config cpu_filter l3_control_pkt {{ p_stats.vp.range }} all state disable
+{# delete access_profile profile_id 1 #}
+delete access_profile profile_id 2
+delete access_profile profile_id 3
+delete access_profile profile_id 4
+delete access_profile profile_id 5
+delete access_profile profile_id 6
+delete access_profile profile_id 7
+delete access_profile profile_id 8
+delete access_profile profile_id 9
+delete access_profile profile_id 10
+delete access_profile profile_id 11
+delete access_profile profile_id 12
 
-create access_profile profile_id 1 profile_name vip ethernet source_mac 00-00-00-00-00-00
+{# VIP-profile. This profile is not automatically deleted where configuration is updated #}
+create access_profile packet_content_mask c_tag 0xFFF0 offset1 l2 0 0x0 profile_id 1
+{# to manually allow vlans with tag 0-15 for port X add following rule: #}
+{# config access_profile profile_id 1 add access_id auto_assign packet_content c_tag 0x0000 port X permit #}
 {# to manually allow any traffic for port X add following rule: #}
-{# config access_profile profile_name vip add access_id auto_assign ethernet source_mac 00-00-00-00-00-00 port X permit #}
+{# config access_profile profile_id 1 add access_id auto_assign packet_content port X permit #}
 
-create access_profile profile_id 2 profile_name security ip destination_ip_mask 0.0.0.0 tcp dst_port_mask 0xFFFF
-{# deny multicast from subscribers #}
-config access_profile profile_name security add access_id auto_assign ip destination_ip 224.0.0.0 mask 240.0.0.0 port {{ p_stats.ss.range }} deny
-{% include 'dlink_deny_tcp_ports' %}
-{# deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20, 172.17.064.0/20, 172.17.080.0/20 for subscribers #}
-{# deny networks 172.17.096.0/20, 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20, 172.17.160.0/20 for subscribers #}
-{# deny networks 172.17.176.0/20, 172.17.192.0/20, 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 for subscribers #}
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.016.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.032.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.048.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.064.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.080.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.096.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.112.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.128.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.144.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.160.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.176.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.192.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.208.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.224.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.240.0 mask 255.255.240.0 port {{ p_stats.ss.range }} deny
+{# deny networks 172.17.016.0/20, 172.17.032.0/20, 172.17.048.0/20 #}
+{# deny networks 172.17.064.0/20, 172.17.080.0/20, 172.17.096.0/20 #}
+{# deny networks 172.17.112.0/20, 172.17.128.0/20, 172.17.144.0/20 #}
+{# deny networks 172.17.160.0/20, 172.17.176.0/20, 172.17.192.0/20 #}
+{# deny networks 172.17.208.0/20, 172.17.224.0/20, 172.17.240.0/20 #}
+create access_profile packet_content_mask offset1 l2 0 0xFFFF offset2 l3 16 0xFFFF offset3 l3 18 0xF000 profile_id 3
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x1000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x2000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x3000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x4000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x5000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x6000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x7000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x8000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0x9000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xa000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xb000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xc000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xd000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xe000 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 offset3 0xf000 port {{ p_stats.ss.range }} deny
 {# deny network 10.99.0.0/16 for subscribers #}
-config access_profile profile_name security add access_id auto_assign ip destination_ip 10.99.0.0 mask 255.255.0.0 port {{ p_stats.ss.range }} deny
-{# replace priority for subnets 172.17.0.0/16 and 10.99.0.0/16 #}
-config access_profile profile_name security add access_id auto_assign ip destination_ip 172.17.0.0 mask 255.255.0.0 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
-config access_profile profile_name security add access_id auto_assign ip destination_ip 10.99.0.0 mask 255.255.0.0 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
-config access_profile profile_name security add access_id auto_assign ip destination_ip 10.137.128.0 mask 255.255.248.0 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a63 port {{ p_stats.ss.range }} deny
+{# replace priority for management networks 172.17.0.0/16 and 10.99.0.0/16 #}
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xac11 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a63 port {{ p_stats.mags.range }} permit priority 7 replace_dscp_with 56
+{# replace priority on valid multicast groups #}
+config access_profile profile_id 3 add access_id auto_assign packet_content offset1 0x0800 offset2 0xef01 offset3 0x0800 port {{ p_stats.up.range }} permit priority 6
 
-create access_profile profile_id 4 profile_name pcf packet_content_mask offset_chunk_1 3 0xFFFF offset_chunk_2 7 0xFFFFFEF8 offset_chunk_3 8 0xFFF80000
-{% include 'dlink_pcf_profile' %}
+create access_profile packet_content_mask offset1 l3 8 0xFF offset2 l3 22 0xFFFF profile_id 4
+{% include 'dlink_deny_ports_pcf' %}
+
+{# deny multicast from subscribers #}
+create access_profile ip destination_ip_mask 240.0.0.0 profile_id 5
+config access_profile profile_id 5 add access_id auto_assign ip destination_ip 224.0.0.0 port {{ p_stats.ss.range }} deny
+
+{# permit ARP with correct 4th octet (between port*8 and port*8+7) #}
+create access_profile packet_content_mask offset1 l2 0 0xFFFF offset2 l3 16 0xF8 profile_id 6
+{% for port_num in p_stats.ss.list -%}
+    config access_profile profile_id 6 add access_id auto_assign packet_content offset1 0x0806 offset2 0x{{ port_num|dlink_offset_chunk_trailer }} port {{ port_num }} permit
+{% endfor %}
+config flow_meter profile_id 6 access_id 1 rate 64 rate_exceed drop_packet
+
+{# allow individual source network for a specific subscriber #}
+create access_profile packet_content_mask offset1 l2 0 0xFFFF offset2 l3 12 0xFFFF offset3 l3 14 0xFEF8 profile_id 7
+{% for port_num in p_stats.ss.list -%}
+    config access_profile profile_id 7 add access_id auto_assign packet_content offset1 0x0800 offset2 0x0a{{ custom|fn_2oct }} offset3 0x{{ custom|fn_3oct }}{{ port_num|dlink_offset_chunk_trailer }} port {{ port_num }} permit
+{% endfor %}
+config access_profile profile_id 7 add access_id 254 packet_content offset1 0x0806 port {{ p_stats.ss.range }} deny
+config access_profile profile_id 7 add access_id 255 packet_content offset1 0x0800 port {{ p_stats.ss.range }} deny
 {% endblock %}
 
 {% block cpu_acl %}
 # CPU ACL
-delete cpu access_profile all
+
+delete cpu access_profile profile_id 1
+delete cpu access_profile profile_id 2
+delete cpu access_profile profile_id 3
 
 enable cpu_interface_filtering
 
@@ -64,6 +104,7 @@ config cpu access_profile profile_id 3 add access_id 1 ip destination_ip 224.0.0
 
 {% block accounts %}
 # ACCOUNT LIST
+
 enable password encryption
 create account admin admin
 *@&JwxHFtYqqKr1J0WJP6Ee2mYVUKSYFKTH
@@ -72,6 +113,7 @@ create account admin admin
 
 {% block stp_lbd %}
 # LOOP DETECT & STP
+
 disable stp
 config stp version rstp
 config stp ports {{ p_stats.mags.range }} state disable restricted_tcn true fbpdu enable
@@ -79,9 +121,9 @@ config stp ports {{ p_stats.ss.range }} state disable restricted_tcn true restri
 config stp ports {{ p_stats.vp.range }} state disable restricted_tcn true restricted_role true edge true
 config stp ports {{ p_stats.eq.range }} state disable restricted_tcn true restricted_role true edge true
 config loopdetect ports {{ p_stats.mags.range }} state disabled
-config loopdetect ports {{ p_stats.ss.range }} state enabled
-config loopdetect ports {{ p_stats.vp.range }} state enabled
-config loopdetect ports {{ p_stats.eq.range }} state enabled
+config loopdetect ports {{ p_stats.ss.range }} state  enabled
+config loopdetect ports {{ p_stats.vp.range }} state  enabled
+config loopdetect ports {{ p_stats.eq.range }} state  enabled
 config loopdetect recover_timer 300
 enable loopdetect
 {% endblock %}
@@ -89,11 +131,12 @@ enable loopdetect
 {% block snmp %}
 # SNMPv3
 
+enable community_encryption
 create snmp community readonly view CommunityView read_only
 create snmp community write4power view CommunityView read_write
 delete snmp community public
 delete snmp community private
-config snmp system_name {{ target }} : {{ custom|fn_tr_cst1 }}. ({{ datetime }})
+config snmp system_name {{ target }} : {{ custom|fn_split_before }}. ({{ datetime }})
 config snmp system_contact 8-800-5500-800 (PowerNet)
 config snmp system_location {{ custom|fn_tr_cst2 }}
 enable snmp
@@ -101,6 +144,7 @@ enable snmp
 
 {% block sntp %}
 # SNTP
+
 config time_zone operator + hour 4 min 0
 config dst disable
 config sntp primary 10.200.201.34
@@ -109,6 +153,7 @@ enable sntp
 
 {% block lldp %}
 # LLDP
+
 config lldp forward_message enable
 config lldp ports {{ p_stats.all.range }} notification disable
 config lldp ports {{ p_stats.all.range }} basic_tlvs all disable
@@ -123,6 +168,7 @@ enable lldp
 
 {% block filtering %}
 # MISC FILTERS
+
 config traffic_segmentation {{ p_stats.mags.range }} forward_list {{ p_stats.all.range }}
 config traffic_segmentation {{ p_stats.ss.range }} forward_list {{ p_stats.mags.range }}
 config traffic_segmentation {{ p_stats.vp.range }} forward_list {{ p_stats.mags.range }}
@@ -136,18 +182,15 @@ config traffic control {{ p_stats.eq.range }} broadcast enable multicast enable 
 config dos_prevention dos_type all state disable
 
 config filter dhcp_server ports {{ p_stats.mags.range }} state disable
-config filter dhcp_server ports {{ p_stats.ss.range }} state enable
+config filter dhcp_server ports {{ p_stats.ss.range }} state  enable
 config filter dhcp_server ports {{ p_stats.vp.range }} state disable
-config filter dhcp_server ports {{ p_stats.eq.range }} state enable
-config filter dhcp_server trap enable
+config filter dhcp_server ports {{ p_stats.eq.range }} state  enable
 config filter dhcp_server log enable
-
-config cpu_filter l3_control_pkt {{ p_stats.all.range }} all state disable
-config cpu_filter l3_control_pkt {{ p_stats.ss.range }} all state enable
 {% endblock %}
 
 {% block trusted_hosts %}
 # TRUSTED HOSTS
+
 delete trusted_host all
 create trusted_host network 10.0.0.0/8
 create trusted_host network 10.90.90.0/24
@@ -160,12 +203,14 @@ delete trusted_host network 10.0.0.0/8
 
 {% block ipm %}
 # IPM
+
 disable address_binding dhcp_snoop
 disable address_binding trap_log
 {% endblock %}
 
 {% block dhcp_relay %}
 # DHCP_RELAY
+
 config dhcp_relay hops 4 time 0
 config dhcp_relay option_82 state enable
 config dhcp_relay option_82 check disable
@@ -174,7 +219,7 @@ config dhcp_relay add ipif System 10.200.201.34
 config dhcp_relay add ipif System 10.200.201.134
 config dhcp_relay option_82 remote_id user_define {{ target }}
 config dhcp_relay ports {{ p_stats.mags.range }} state disable
-config dhcp_relay ports {{ p_stats.ss.range }} state enable
+config dhcp_relay ports {{ p_stats.ss.range }} state  enable
 config dhcp_relay ports {{ p_stats.vp.range }} state disable
 config dhcp_relay ports {{ p_stats.eq.range }} state enable
 enable dhcp_relay
@@ -182,6 +227,7 @@ enable dhcp_relay
 
 {% block igmp_snooping %}
 # IGMP
+
 enable igmp_snooping
 enable igmp_snooping multicast_vlan
 delete igmp_snooping multicast_vlan multicast-vlan
@@ -189,12 +235,12 @@ delete igmp_snooping multicast_vlan mvr
 config igmp_snooping all state disable
 config igmp_snooping all fast_leave disable
 create igmp_snooping multicast_vlan mvr 50
-config igmp_snooping multicast_vlan mvr state enable
+config igmp_snooping multicast_vlan mvr state enable 
 config igmp_snooping multicast_vlan mvr replace_source_ip 10.11.0.2
 config igmp_snooping vlan_name mvr fast_leave disable
 config igmp_snooping querier vlan_name mvr robustness_variable 7
 config igmp_snooping data_driven_learning max_learned_entry 1
-config igmp_snooping data_driven_learning vlan_name mvr aged_out enable
+config igmp_snooping data_driven_learning vlan_name mvr aged_out enable 
 config igmp_snooping multicast_vlan mvr add member_port {{ p_stats.ss.range }}
 config igmp_snooping multicast_vlan mvr add member_port {{ p_stats.ns.range }}
 config igmp_snooping multicast_vlan mvr add tag_member_port {{ p_stats.mags.range }}
@@ -202,22 +248,24 @@ config igmp_snooping multicast_vlan mvr delete tag_member_port {{ p_stats.up.ran
 config igmp_snooping multicast_vlan mvr add source_port {{ p_stats.up.range }}
 config igmp_snooping multicast_vlan mvr delete tag_member_port {{ p_stats.pu.range }}
 config igmp_snooping multicast_vlan mvr add source_port {{ p_stats.pu.range }}
-config multicast vlan_filtering_mode all filter_unregistered_groups
+config multicast port_filtering_mode all filter_unregistered_groups
 {% endblock %}
 
 {% block igmp_auth %}
 # IGMP Authentication
+
 config radius delete 1
 config radius delete 2
 config radius add 1 10.200.201.234 key rad0iptv default
 config radius add 2 10.200.201.134 key rad0iptv default
 config igmp access_authentication ports {{ p_stats.all.range }} state disable
 config igmp access_authentication ports {{ p_stats.ss.range }} state disable
-config radius 1 timeout 1 retransmit 1
+config radius parameter timeout 1 retransmit 1
 {% endblock %}
 
 {% block aaa %}
 # AAA
+
 create authen server_host 10.200.201.34 protocol radius port 1812 key "rad0iptv" timeout 5 retransmit 2
 create authen server_host 10.200.201.134 protocol radius port 1812 key "rad0iptv" timeout 5 retransmit 2
 
@@ -238,6 +286,7 @@ enable authen_policy
 
 {% block multi_filter %}
 # MULTI FILTER
+
 config limited_multicast_addr ports {{ p_stats.all.range }} delete profile_id 1
 delete mcast_filter_profile profile_id 1
 
@@ -248,31 +297,40 @@ config limited_multicast_addr ports {{ p_stats.all.range }} add profile_id 1 acc
 
 {% block cos %}
 # COS
+
 config scheduling_mechanism strict
-config dscp trust {{ p_stats.all.range }} state disable
-config dscp trust {{ p_stats.mags.range }} state enable
+
+config cos tos value 6 class 3
+config cos tos value 7 class 3
+
+config dscp_mapping dscp_value 48 class 3
+config dscp_mapping dscp_value 56 class 3
+config cos mapping ports {{ p_stats.all.range }} none
+config cos mapping ports {{ p_stats.mags.range }} ip dscp
 {% endblock %}
 
 {% block mon_log %}
 # MONITOR
-config temperature threshold high 50
-config temperature threshold low 3
-config temperature trap state enable
-config temperature log state enable
 
 enable syslog
 delete syslog host all
-create syslog host 1 ipaddress 10.200.201.180 udp_port 7514 state enable severity debug
-create syslog host 2 ipaddress 10.200.201.137 state enable severity debug
+create syslog host 1 ipaddress 10.200.201.180 udp_port 7514 state enable
+create syslog host 2 ipaddress 10.200.201.137 state enable
 
 enable mac_notification
 config mac_notification ports {{ p_stats.all.range }} disable
-config mac_notification ports {{ p_stats.ss.range }} enable
-config mac_notification ports {{ p_stats.vp.range }} enable
+config mac_notification ports {{ p_stats.ss.range }}  enable
+config mac_notification ports {{ p_stats.vp.range }}  enable
 delete snmp host 10.200.200.9
 create snmp host 10.200.201.180 v2c readonly
 
-config port_vlan {{ p_stats.mags.range }} pvid 50
+config gvrp {{ p_stats.mags.range }} pvid 50
+config gvrp {{ p_stats.all.range }} ingress_checking enable
+
+disable flood_fdb
+config flood_fdb log enable trap disable
+
+enable rmon
 
 config safeguard_engine utilization rising 90 falling 30 trap_log enable state enable
 
@@ -282,19 +340,14 @@ enable command logging
 config ethernet_oam ports {{ p_stats.all.range }} state disable
 config ethernet_oam ports {{ p_stats.mags.range }} state enable
 config ethernet_oam ports {{ p_stats.all.range }} critical_link_event critical_event notify_state disable
-
-# AutoBackup
-enable autobackup
-disable autobackup_encryption
-config autobackup mode all
-config autobackup log state enable
-config autobackup path tftp 10.200.201.180 dest_file backup
-config autobackup time_schedule interval 60
-config autobackup file_template none
 {% endblock %}
 
 {% block p_desc %}
     {% include 'dlink_ports_description' %}
 {% endblock %}
 
-{% block bottom %}{% endblock %}
+{% block bottom %}
+#-------------------------------------------------------------------
+#             End of configuration file for DES-3200-26
+#-------------------------------------------------------------------
+{% endblock %}

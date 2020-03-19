@@ -1,12 +1,18 @@
-{% block header %}Header{% endblock %}
+{% block header %}
+#-------------------------------------------------------------------------------
+#                    DGS-3000-10TC Gigabit Ethernet Switch
+#                                Configuration
+#
+#                          Firmware: Build 1.14.B008
+#           Copyright(C) 2014 D-Link Corporation. All rights reserved.
+#-------------------------------------------------------------------------------
+{% endblock %}
 
 {% block acl %}
 # ACL
 delete access_profile profile_name vlandscp
 delete access_profile profile_name security
 delete access_profile profile_name pcf
-
-config cpu_filter l3_control_pkt {{ p_stats.vp.range }} all state disable
 
 create access_profile profile_id 1 profile_name vip ethernet source_mac 00-00-00-00-00-00
 {# to manually allow any traffic for port X add following rule: #}
@@ -43,6 +49,10 @@ config access_profile profile_name security add access_id auto_assign ip destina
 
 create access_profile profile_id 4 profile_name pcf packet_content_mask offset_chunk_1 3 0xFFFF offset_chunk_2 7 0xFFFFFEF8 offset_chunk_3 8 0xFFF80000
 {% include 'dlink_pcf_profile' %}
+{# deny IP #}
+config access_profile profile_name pcf add access_id 254 packet_content offset_chunk_1 0x0800 port {{ p_stats.ss.range }} deny
+{# deny ARP #}
+config access_profile profile_name pcf add access_id 255 packet_content offset_chunk_1 0x0806 port {{ p_stats.ss.range }} deny
 {% endblock %}
 
 {% block cpu_acl %}
@@ -88,7 +98,7 @@ enable loopdetect
 
 {% block snmp %}
 # SNMPv3
-
+enable community_encryption
 create snmp community readonly view CommunityView read_only
 create snmp community write4power view CommunityView read_write
 delete snmp community public
@@ -139,8 +149,7 @@ config filter dhcp_server ports {{ p_stats.mags.range }} state disable
 config filter dhcp_server ports {{ p_stats.ss.range }} state enable
 config filter dhcp_server ports {{ p_stats.vp.range }} state disable
 config filter dhcp_server ports {{ p_stats.eq.range }} state enable
-config filter dhcp_server trap enable
-config filter dhcp_server log enable
+config filter dhcp_server trap_log enable
 
 config cpu_filter l3_control_pkt {{ p_stats.all.range }} all state disable
 config cpu_filter l3_control_pkt {{ p_stats.ss.range }} all state enable
@@ -189,12 +198,12 @@ delete igmp_snooping multicast_vlan mvr
 config igmp_snooping all state disable
 config igmp_snooping all fast_leave disable
 create igmp_snooping multicast_vlan mvr 50
-config igmp_snooping multicast_vlan mvr state enable
+config igmp_snooping multicast_vlan mvr state enable 
 config igmp_snooping multicast_vlan mvr replace_source_ip 10.11.0.2
 config igmp_snooping vlan_name mvr fast_leave disable
 config igmp_snooping querier vlan_name mvr robustness_variable 7
 config igmp_snooping data_driven_learning max_learned_entry 1
-config igmp_snooping data_driven_learning vlan_name mvr aged_out enable
+config igmp_snooping data_driven_learning vlan_name mvr aged_out enable 
 config igmp_snooping multicast_vlan mvr add member_port {{ p_stats.ss.range }}
 config igmp_snooping multicast_vlan mvr add member_port {{ p_stats.ns.range }}
 config igmp_snooping multicast_vlan mvr add tag_member_port {{ p_stats.mags.range }}
@@ -278,23 +287,14 @@ config safeguard_engine utilization rising 90 falling 30 trap_log enable state e
 
 config log_save_timing time_interval 240
 enable command logging
-
-config ethernet_oam ports {{ p_stats.all.range }} state disable
-config ethernet_oam ports {{ p_stats.mags.range }} state enable
-config ethernet_oam ports {{ p_stats.all.range }} critical_link_event critical_event notify_state disable
-
-# AutoBackup
-enable autobackup
-disable autobackup_encryption
-config autobackup mode all
-config autobackup log state enable
-config autobackup path tftp 10.200.201.180 dest_file backup
-config autobackup time_schedule interval 60
-config autobackup file_template none
 {% endblock %}
 
 {% block p_desc %}
     {% include 'dlink_ports_description' %}
 {% endblock %}
 
-{% block bottom %}{% endblock %}
+{% block bottom %}
+#-------------------------------------------------------------------
+#             End of configuration file for DGS-3000-10TC
+#-------------------------------------------------------------------
+{% endblock %}
