@@ -1,6 +1,6 @@
 #coding=UTF8
 # IP-адрес интерфейса, на котором будет работать демон
-interface_ip = "10.200.201.180"
+interface_ip = ""
 # UDP-порт для TFTP-сервера
 port = 69
 # Время в секундах, через которое надо обновлять список портов и устройств
@@ -17,10 +17,10 @@ log_size = 1048576
 log_backupcount = 4
 
 # Настройки для MySQL-сервера, откуда будут забираться данные
-mysql_addr = "mysql.powernet"
-mysql_user = "devices_logger"
-mysql_pass = "devices_logger"
-mysql_base = "problem"
+mysql_addr = "mysql.localhost"
+mysql_user = "user"
+mysql_pass = "password"
+mysql_base = "devices"
 
 # Настройки для PostgreSQL-сервера, откуда будут забираться данные. Используется как альтернатива MySQL
 postgresql_addr = "postgresql.localhost"
@@ -30,15 +30,19 @@ postgresql_base = "devices"
 use_postgresql = False
 
 # Запрос к базе данных для получения списка устройств. Поля: ip(str), type(int), custom(str)
-devices_query = "SELECT * FROM view_dracon_devices"
+devices_query = """
+SELECT '10.90.90.95' AS ip, 24 AS type, '192.168.0.0/24' AS custom;
+"""
 
 # Запрос к базе данных для получения сведений о портах коммутатора. Поля: ip(str), port(int), ptype(int), comment(str)
-ports_query = "SELECT * FROM view_dracon_ports"
+ports_query = """
+SELECT '10.90.90.95' AS ip, 1 AS port, 1 AS ptype, 'user12345' AS comment;
+"""
 
 # Настройки для MySQL-сервера, где будет храниться конфигурация и информация о транзакциях
 mysql_addr_w = "localhost"
 mysql_user_w = "dracon"
-mysql_pass_w = "VtQ=<|L3o%_{"
+mysql_pass_w = "draconpass"
 mysql_base_w = "dracon"
 mysql_ctbl_w = "configs"
 mysql_ttbl_w = "transactions"
