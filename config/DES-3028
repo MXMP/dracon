@@ -46,6 +46,8 @@ create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 off
 create access_profile ip dscp profile_id 7
 config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port {{ p_stats.up.range }} permit priority 6
 config access_profile profile_id 7 add access_id auto_assign ip dscp 48 port {{ p_stats.pu.range }} permit priority 6
+config access_profile profile_id 7 add access_id auto_assign ip dscp 46 port {{ p_stats.mags.range }} permit priority 5
+config access_profile profile_id 7 add access_id auto_assign ip dscp 24 port {{ p_stats.mags.range }} permit priority 3
 
 {# deny multicast from subscribers. (!) this rule applies only to untagged traffic #}
 create access_profile packet_content_mask offset_0-15 0x0 0x0 0x0 0xffff0000 offset_16-31 0x0 0x0 0x0 0x0000f000 profile_id 8
