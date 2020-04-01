@@ -498,6 +498,13 @@ def get_data(target, fname, sw, custom, ports, transfer, data_type):
     # TODO: вынести в конфиг размер блока (или в константы)
     block_size = 512
     data = ''
+
+    # Такое прилетит когда в БД нет информации о устройстве (или оно не попало в выборку)
+    if sw == 'n/a':
+        device_not_found_message = f'Can\'t find info about {target}'
+        logger.error(device_not_found_message)
+        data = f'# {device_not_found_message}'
+
     # Работаем, если запрошено ПО и имя файла указано
     if (data_type == 'firmware') & (get_fw_file_name(sw) != 'no_such_file'):
         # Если тип передачи 'octet' (без изменений)...
@@ -521,7 +528,7 @@ def get_data(target, fname, sw, custom, ports, transfer, data_type):
         data = get_last_config_from_my_sql(target)
 
     # Работаем, если запрошена конфигурация и устройство определено
-    if (data_type == 'config') & (target is not None):
+    if (data_type == 'config') and (target is not None) and (sw != 'n/a'):
         # Если имя файла (которое является и командой) присутствует в наборе списков команд:
         if fname in list(commands.keys()):
             # создаем окружение для Jinja2, загружаем фильтры и шаблон для коммутатора
@@ -532,24 +539,30 @@ def get_data(target, fname, sw, custom, ports, transfer, data_type):
                 env.filters[filter_name] = filter_function
             try:
                 template = env.get_template(sw)
-            except (jinja2.TemplateSyntaxError, jinja2.TemplateNotFound) as e:
-                logger.error(e)
-                return '', ''
+                # формируем контекст (то что передается в шаблон)
+                context = template.new_context({'p_stats': p_stat(ports),
+                                                'custom': custom,
+                                                'target': target,
+                                                'datetime': get_dttm()[1],
+                                                'comments': {port: ports[port]['comment'] for port in ports}})
 
-            # формируем контекст (то что передается в шаблон)
-            context = template.new_context({'p_stats': p_stat(ports),
-                                            'custom': custom,
-                                            'target': target,
-                                            'datetime': get_dttm()[1],
-                                            'comments': {port: ports[port]['comment'] for port in ports}})
-
-            # Перебираем все команды внутри списка для данной команды
-            for cmd in commands[fname]:
-                if cmd in template.blocks:
-                    for microblock in template.blocks[cmd](context):
-                        data += microblock
-                else:
-                    logger.error(f"Can't find <{cmd}> block in {template}")
+                # Перебираем все команды внутри списка для данной команды
+                for cmd in commands[fname]:
+                    if cmd in template.blocks:
+                        for microblock in template.blocks[cmd](context):
+                            data += microblock
+                    else:
+                        error_message = f"Can't find <{cmd}> block in {template}"
+                        logger.error(error_message)
+                        data = f'# {error_message}'
+            except jinja2.TemplateSyntaxError:
+                error_message = f'Syntax error in template for {sw}'
+                logger.error(error_message)
+                data = f'# {error_message}'
+            except jinja2.TemplateNotFound:
+                error_message = f'Can\'t find template for {sw}'
+                logger.error(error_message)
+                data = f'# {error_message}'
 
     # Получаем контрольную сумму для данных
     m5d = md5(data)
@@ -671,8 +684,10 @@ def main():
             # Для общего случая определяем:
             # назначение - 'IP_отправителя:Port'
             dip = f"{rem_ip}:{rem_port}"
+            # Получаем имя (модель), сеть и адрес удаленного устройства
+            rem_dev, rem_cust = get_sw_info(target_ip, devices)
             # цель - 'IP_устройства (модель_устройства)'
-            dev = "'%s' (%s)" % (target_ip, get_sw_info(target_ip, devices)[0])
+            dev = "'%s' (%s)" % (target_ip, rem_dev)
             # В остальных случаях цель и модель попадают в словарь, с которым и ведется работа в дальнейшем.
             # То есть dev может переопределяться ниже
 
@@ -695,8 +710,6 @@ def main():
                     target_ip = None
                 # Если запрошено ПО, то данные о портах не нужны, но нужна модель устройства, поэтому не обнуляем IP
 
-                # Получаем имя (модель), сеть и адрес удаленного устройства
-                rem_dev, rem_cust = get_sw_info(target_ip, devices)
                 # Если запрошена конфигурация, получаем данные в виде блоков и их MD5-сумму (от целой части без блоков)
                 if data_type == 'config':
                     cfg_tmp, md5_tmp = get_data(target_ip, tftp_filename, rem_dev, rem_cust, ports[target_ip],

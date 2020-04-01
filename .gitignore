@@ -6,3 +6,4 @@ tests/
 __pycache__/
 fw/
 .DS_Store
+*.log
