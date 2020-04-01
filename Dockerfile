@@ -1,7 +1,8 @@
 FROM python:3-alpine as base
 
 FROM base as builder
-RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev libffi-dev
+RUN apk update
+RUN apk add postgresql-dev gcc python3-dev musl-dev libffi-dev libpq
 COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
