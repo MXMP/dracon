@@ -17,10 +17,10 @@ log_size = 1048576
 log_backupcount = 4
 
 # Настройки для MySQL-сервера, откуда будут забираться данные
-mysql_addr = "mysql.localhost"
-mysql_user = "user"
-mysql_pass = "password"
-mysql_base = "devices"
+mysql_addr = "mysql.powernet"
+mysql_user = "devices_logger"
+mysql_pass = "devices_logger"
+mysql_base = "problem"
 
 # Настройки для PostgreSQL-сервера, откуда будут забираться данные. Используется как альтернатива MySQL
 postgresql_addr = "postgresql.localhost"
@@ -30,19 +30,15 @@ postgresql_base = "devices"
 use_postgresql = False
 
 # Запрос к базе данных для получения списка устройств. Поля: ip(str), type(int), custom(str)
-devices_query = """
-SELECT '10.90.90.95' AS ip, 24 AS type, '192.168.0.0/24' AS custom;
-"""
+devices_query = "SELECT * FROM view_dracon_devices"
 
 # Запрос к базе данных для получения сведений о портах коммутатора. Поля: ip(str), port(int), ptype(int), comment(str)
-ports_query = """
-SELECT '10.90.90.95' AS ip, 1 AS port, 1 AS ptype, 'user12345' AS comment;
-"""
+ports_query = "SELECT * FROM view_dracon_ports"
 
 # Настройки для MySQL-сервера, где будет храниться конфигурация и информация о транзакциях
 mysql_addr_w = "localhost"
 mysql_user_w = "dracon"
-mysql_pass_w = "draconpass"
+mysql_pass_w = "VtQ=<|L3o%_{"
 mysql_base_w = "dracon"
 mysql_ctbl_w = "configs"
 mysql_ttbl_w = "transactions"
@@ -57,7 +53,6 @@ dev_types = {
     209: 'DES-3200-18_C1',  # DES-3200-18/C1
     205: 'DES-3028',  # DES-3028
     215: 'DGS-3000-24TC',  # DES-3000-24TC
-    221: 'DES-3200-18', # DES-3200-10/A1
     252: 'DGS-3000-26TC',  # DES-3000-24TC
     253: 'DGS-1510-28LME',  # DGS-1510-28L/ME
     260: 'DGS-3000-28L',  # DGS-3000-28L
@@ -67,6 +62,10 @@ dev_types = {
     283: 'DES-1228ME', # DES-1228/ME rev. A1/A2
     291: 'DES-3200-26',  # DES-3200-26/A1
     296: 'DGS-3000-10TC',  # DES-3000-10TC
+    297: 'DGS-3200-10',  # DGS-3200-10
+    232: 'DES-3028G',  # DES-3028G
+    293: 'DGS-3200-16',  # DGS-3200-16
+    295: 'DGS-3200-24',  # DGS-3200-24
 }
 
 # Словарь с кодами портов и их сокращенными обозначениями
@@ -100,6 +99,7 @@ fw_names = {
     'DGS-1510-20LME': 'DGS-1510_ME_Run_1_30_B013.had',
     'DGS-3000-28L': 'DGS-3000_Run_4_02_B009.had',
     'DES-1228ME': 'DES1228ME_1.60.B06.had',
+    'DGS-3200-10': 'DGS3200_Run_2_21_B019.had',
     } 
 
 # Доступные команды (имена файлов) и соответствующие им шаблоны с набором команд

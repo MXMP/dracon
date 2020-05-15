@@ -259,10 +259,12 @@ config limited_multicast_addr ports {{ p_stats.all.range }} add profile_id 1 acc
 
 {% block cos %}
 # COS
+
 config scheduling_mechanism strict
 config dscp trust {{ p_stats.all.range }} state disable
 config dscp trust {{ p_stats.mags.range }} state enable
 {% endblock %}
+
 
 {% block mon_log %}
 # MONITOR
