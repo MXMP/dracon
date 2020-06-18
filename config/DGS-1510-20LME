@@ -309,6 +309,39 @@ config autobackup file_template none
 {% block p_desc %}
     {% include 'dlink_ports_description' %}
 {% endblock %}
+{% block banner %}
+# BANNER_PROMP
+
+config command_prompt default
+config greeting_message
+        #######    #### ##   ##  #####  ######  ##   ## ####### ######
+        ##   ##   ## ## ##   ## ##   ## ##   ## ##   ## ##        ##    
+        ##   ##  ##  ## ##   ##      ## ##   ## ##   ## ##        ##
+        ##   ## ##   ##  ######   ##### ######  ####### ######    ##
+        ##   ## #######      ##      ## ##      ##   ## ##        ##
+        ##   ## ##   ## ##   ## ##   ## ##      ##   ## ##        ##
+        ##   ## ##   ##  #####   #####  ##      ##   ## #######   ## 
+
+           DES-3200-28/C1                     Phone: 8-800-5500-800
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
 
 {% block bottom %}
 #-------------------------------------------------------------------

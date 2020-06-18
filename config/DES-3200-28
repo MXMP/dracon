@@ -393,6 +393,17 @@ config ethernet_oam ports {{ p_stats.all.range }} critical_link_event critical_e
     {% include 'dlink_ports_description' %}
 {% endblock %}
 
+{% block banner %}
+conf gree
+        #######    #### ##   ##  #####  ######  ##   ## ####### ######
+        ##   ##  ##  ## ##   ##      ## ##   ## ##   ## ##        ##
+        ##   ## #######  ######   ##### ######  ####### ######    ##
+        ##   ## ##   ##      ##      ## ##      ##   ## ##        ##
+        ##   ## ##   ##  #####   #####  ##      ##   ## #######   ## 
+           DES-3200-28/B1                     Phone: 8-800-5500-800
+{% endblock %}
+
+
 {% block bottom %}
 #-------------------------------------------------------------------
 #             End of configuration file for DES-3200-28

@@ -17,10 +17,10 @@ log_size = 1048576
 log_backupcount = 4
 
 # Настройки для MySQL-сервера, откуда будут забираться данные
-mysql_addr = "mysql.powernet"
-mysql_user = "devices_logger"
-mysql_pass = "devices_logger"
-mysql_base = "problem"
+mysql_addr = "mysql.localhost"
+mysql_user = "user"
+mysql_pass = "password"
+mysql_base = "devices"
 
 # Настройки для PostgreSQL-сервера, откуда будут забираться данные. Используется как альтернатива MySQL
 postgresql_addr = "postgresql.localhost"
@@ -38,7 +38,7 @@ ports_query = "SELECT * FROM view_dracon_ports"
 # Настройки для MySQL-сервера, где будет храниться конфигурация и информация о транзакциях
 mysql_addr_w = "localhost"
 mysql_user_w = "dracon"
-mysql_pass_w = "VtQ=<|L3o%_{"
+mysql_pass_w = "draconpass"
 mysql_base_w = "dracon"
 mysql_ctbl_w = "configs"
 mysql_ttbl_w = "transactions"
@@ -66,6 +66,7 @@ dev_types = {
     232: 'DES-3028G',  # DES-3028G
     293: 'DGS-3200-16',  # DGS-3200-16
     295: 'DGS-3200-24',  # DGS-3200-24
+    303: 'DGS-3000-20L',  # DGS-3000-20L
 }
 
 # Словарь с кодами портов и их сокращенными обозначениями
@@ -127,7 +128,8 @@ commands = {
                'cos', 'mon_log', 'p_desc', 'bottom'],
     'safe_config': ['header', 'acl', 'cpu_acl', 'accounts', 'stp_lbd', 'snmp', 'sntp', 'lldp',
                     'filtering', 'trusted_hosts', 'ipm', 'dhcp_relay', 'igmp_auth', 'aaa', 'multi_filter',
-                    'cos', 'mon_log', 'p_desc', 'bottom']
+                    'cos', 'mon_log', 'p_desc', 'bottom'],
+    'banner': ['header', 'banner']
 }
 
 # Содержимое справки, получаемой по команде (имени файла) 'help'

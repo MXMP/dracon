@@ -392,6 +392,8 @@ config ethernet_oam ports {{ p_stats.all.range }} critical_link_event critical_e
 {% block p_desc %}
     {% include 'dlink_ports_description' %}
 {% endblock %}
+{% block banner%}
+{% endblock %}
 
 {% block bottom %}
 #-------------------------------------------------------------------
